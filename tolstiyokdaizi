@@ -1,6 +1,6 @@
 -- Cheat Injection Notification Script for Roblox
 -- Title: SQWIRT FROM SABLE DLC for destruction DBR
--- FINAL VERSION v1.6.6 - UNIVERSAL CONFIG
+-- FINAL VERSION v1.6.7 - FIXED OLD ANIMS
 
 -- ==================== ОПРЕДЕЛЕНИЕ РЕЖИМА ====================
 local PlaceId = game.PlaceId
@@ -466,10 +466,9 @@ _G.SaveConfig = function()
         writefile("SqwirtSableConfig.txt", json)
         game:GetService("StarterGui"):SetCore("SendNotification", {
             Title = "Config",
-            Text = "Universal Config Saved!",
+            Text = "Saved!",
             Duration = 1
         })
-        print("✅ Universal config saved from " .. GameMode)
     end)
 end
 
@@ -482,16 +481,6 @@ _G.LoadConfig = function()
             for k, v in pairs(loaded) do
                 _G.Settings[k] = v
             end
-            print("✅ Universal config loaded for " .. GameMode)
-            
-            -- Показываем статус Old Anims при загрузке
-            if _G.Settings.OldAnims_Enabled then
-                print("  🎭 Old Anims: ENABLED (from config)")
-            else
-                print("  🎭 Old Anims: DISABLED (from config)")
-            end
-        else
-            print("ℹ️ No universal config found, using defaults for " .. GameMode)
         end
     end)
 end
@@ -594,10 +583,9 @@ _G.ResetConfig = function()
     }
     game:GetService("StarterGui"):SetCore("SendNotification", {
         Title = "Config",
-        Text = "Universal Config Reset!",
+        Text = "Reset!",
         Duration = 1
     })
-    print("🔄 Universal config reset from " .. GameMode)
 end
 
 -- Загружаем универсальный конфиг
@@ -620,11 +608,6 @@ print("  From:    sqwirt from sable      ")
 print("  Mode:    " .. GameMode)
 print("  Status:  INJECTED                ")
 print("  Time:    " .. os.date("%H:%M:%S") .. "                ")
-if _G.Settings.OldAnims_Enabled then
-    print("  🎭 Old Anims: ENABLED")
-else
-    print("  🎭 Old Anims: DISABLED")
-end
 print("═══════════════════════════════════")
 
 -- ==================== MAIN SCRIPT ====================
@@ -1281,7 +1264,7 @@ if GameMode == "LOBBY" then
         }
     }
 elseif GameMode == "GAME" then
-    -- GAME MODE - все функции (кроме reward и old anims)
+    -- GAME MODE - все функции (кроме reward)
     CommandSystem = {
         Survivor = {
             Tabs = {"Visuals", "SpeedHack", "Functions", "Auto", "Keybinds", "MISC", "Config"},
@@ -5112,162 +5095,161 @@ RunService.Heartbeat:Connect(function()
     end
 end)
 
--- ==================== OLD ANIMS SYSTEM (ТОЛЬКО ДЛЯ ЛОББИ) ====================
-if GameMode == "LOBBY" and _G.Settings.OldAnims_Enabled then
-    local ReplicatedStorage = game:GetService("ReplicatedStorage")
+-- ==================== OLD ANIMS SYSTEM (ИСПРАВЛЕННАЯ ВЕРСИЯ) ====================
+local OldAnims = {
+    Enabled = _G.Settings.OldAnims_Enabled,
+    Applied = false
+}
+
+local function replaceAnimations()
+    print("Замена анимаций на OLD версии...")
     
-    -- Функция для замены анимаций
-    local function replaceAnimations()
-        print("🔄 Замена анимаций на OLD версии...")
-        
-        local targetAssets = ReplicatedStorage:FindFirstChild("Game_Assets")
-        if not targetAssets then
-            warn("❌ Не найден Game_Assets в ReplicatedStorage")
-            return false
-        end
-        
-        local targetAnimations = targetAssets:FindFirstChild("Animations")
-        if not targetAnimations then
-            warn("❌ Не найден Animations в Game_Assets")
-            return false
-        end
-        
-        local targetMovement = targetAnimations:FindFirstChild("Movement")
-        if not targetMovement then
-            warn("❌ Не найден Movement в Animations")
-            return false
-        end
-        
-        local animFolder = targetMovement:FindFirstChild("Survivor")
-        if not animFolder then
-            warn("❌ Не найден Survivor в Movement")
-            return false
-        end
-        
-        print("📝 Применяю OLD анимации...")
-        
-        -- Default Injured
-        local Default_Injured_Walk = animFolder:FindFirstChild("Default_Injured_Walk")
-        if Default_Injured_Walk and Default_Injured_Walk:IsA("Animation") then
-            Default_Injured_Walk.AnimationId = "rbxassetid://8497951749"
-            print("  ✅ Default_Injured_Walk = rbxassetid://8497951749")
-        end
-        
-        local Default_Injured_Run = animFolder:FindFirstChild("Default_Injured_Run")
-        if Default_Injured_Run and Default_Injured_Run:IsA("Animation") then
-            Default_Injured_Run.AnimationId = "rbxassetid://13417228721"
-            Default_Injured_Run:SetAttribute("Speed", 0.39)
-            print("  ✅ Default_Injured_Run = rbxassetid://13417228721 (Speed=0.39)")
-        end
-        
-        local Medkit_Injured_Run = animFolder:FindFirstChild("Medkit_Injured_Run")
-        if Medkit_Injured_Run and Medkit_Injured_Run:IsA("Animation") then
-            Medkit_Injured_Run.AnimationId = "rbxassetid://13417282721"
-            Medkit_Injured_Run:SetAttribute("Speed", 0.39)
-            print("  ✅ Medkit_Injured_Run = rbxassetid://13417282721 (Speed=0.39)")
-        end
-        
-        local Default_Injured_Idle = animFolder:FindFirstChild("Default_Injured_Idle")
-        if Default_Injured_Idle and Default_Injured_Idle:IsA("Animation") then
-            Default_Injured_Idle.AnimationId = "rbxassetid://13417291384"
-            print("  ✅ Default_Injured_Idle = rbxassetid://13417291384")
-        end
-        
-        local Default_Injured_Crouch_Walk = animFolder:FindFirstChild("Default_Injured_Crouch_Walk")
-        if Default_Injured_Crouch_Walk and Default_Injured_Crouch_Walk:IsA("Animation") then
-            Default_Injured_Crouch_Walk.AnimationId = "rbxassetid://13417640847"
-            print("  ✅ Default_Injured_Crouch_Walk = rbxassetid://13417640847")
-        end
-        
-        local Default_Injured_Crouch_Idle = animFolder:FindFirstChild("Default_Injured_Crouch_Idle")
-        if Default_Injured_Crouch_Idle and Default_Injured_Crouch_Idle:IsA("Animation") then
-            Default_Injured_Crouch_Idle.AnimationId = "rbxassetid://13417692019"
-            print("  ✅ Default_Injured_Crouch_Idle = rbxassetid://13417692019")
-        end
-        
-        -- Default Normal
-        local Default_Walk = animFolder:FindFirstChild("Default_Walk")
-        if Default_Walk and Default_Walk:IsA("Animation") then
-            Default_Walk.AnimationId = "rbxassetid://13417592417"
-            print("  ✅ Default_Walk = rbxassetid://13417592417")
-        end
-        
-        local Default_Idle = animFolder:FindFirstChild("Default_Idle")
-        if Default_Idle and Default_Idle:IsA("Animation") then
-            Default_Idle.AnimationId = "rbxassetid://15929411259"
-            print("  ✅ Default_Idle = rbxassetid://15929411259")
-        end
-        
-        local Default_Crouch_Walk = animFolder:FindFirstChild("Default_Crouch_Walk")
-        if Default_Crouch_Walk and Default_Crouch_Walk:IsA("Animation") then
-            Default_Crouch_Walk.AnimationId = "rbxassetid://13417637304"
-            print("  ✅ Default_Crouch_Walk = rbxassetid://13417637304")
-        end
-        
-        local Default_Crouch_Idle = animFolder:FindFirstChild("Default_Crouch_Idle")
-        if Default_Crouch_Idle and Default_Crouch_Idle:IsA("Animation") then
-            Default_Crouch_Idle.AnimationId = "rbxassetid://13417701666"
-            print("  ✅ Default_Crouch_Idle = rbxassetid://13417701666")
-        end
-        
-        local Default_Crawl_Walk = animFolder:FindFirstChild("Default_Crawl_Walk")
-        if Default_Crawl_Walk and Default_Crawl_Walk:IsA("Animation") then
-            Default_Crawl_Walk.AnimationId = "rbxassetid://14288523957"
-            print("  ✅ Default_Crawl_Walk = rbxassetid://14288523957")
-        end
-        
-        local Default_Crawl_Idle = animFolder:FindFirstChild("Default_Crawl_Idle")
-        if Default_Crawl_Idle and Default_Crawl_Idle:IsA("Animation") then
-            Default_Crawl_Idle.AnimationId = "rbxassetid://16866513397"
-            print("  ✅ Default_Crawl_Idle = rbxassetid://16866513397")
-        end
-        
-        local Default_Run = animFolder:FindFirstChild("Default_Run")
-        if Default_Run and Default_Run:IsA("Animation") then
-            Default_Run.AnimationId = "rbxassetid://13988521481"
-            print("  ✅ Default_Run = rbxassetid://13988521481")
-        end
-        
-        local Medkit_Run = animFolder:FindFirstChild("Medkit_Run")
-        if Medkit_Run and Medkit_Run:IsA("Animation") then
-            Medkit_Run.AnimationId = "rbxassetid://13417682705"
-            print("  ✅ Medkit_Run = rbxassetid://13417682705")
-        end
-        
-        print("\n" .. string.rep("=", 50))
-        print("✅ Все анимации успешно заменены на OLD версии!")
-        print(string.rep("=", 50))
-        
-        return true
+    local targetAssets = ReplicatedStorage:FindFirstChild("Game_Assets")
+    if not targetAssets then
+        warn("Не найден Game_Assets в ReplicatedStorage")
+        return false
     end
     
-    -- Функция для мониторинга Speed атрибута
-    local function monitorSpeed()
-        while true do
-            task.wait(2)
-            
-            local targetAssets = ReplicatedStorage:FindFirstChild("Game_Assets")
-            if targetAssets then
-                local targetAnimations = targetAssets:FindFirstChild("Animations")
-                if targetAnimations then
-                    local targetMovement = targetAnimations:FindFirstChild("Movement")
-                    if targetMovement then
-                        local animFolder = targetMovement:FindFirstChild("Survivor")
-                        if animFolder then
-                            local injuredRun = animFolder:FindFirstChild("Default_Injured_Run")
-                            if injuredRun and injuredRun:IsA("Animation") then
-                                local speed = injuredRun:GetAttribute("Speed")
-                                if speed ~= 0.39 then
-                                    injuredRun:SetAttribute("Speed", 0.39)
-                                end
+    local targetAnimations = targetAssets:FindFirstChild("Animations")
+    if not targetAnimations then
+        warn("Не найден Animations в Game_Assets")
+        return false
+    end
+    
+    local targetMovement = targetAnimations:FindFirstChild("Movement")
+    if not targetMovement then
+        warn("Не найден Movement в Animations")
+        return false
+    end
+    
+    local animFolder = targetMovement:FindFirstChild("Survivor")
+    if not animFolder then
+        warn("Не найден Survivor в Movement")
+        return false
+    end
+    
+    print("Применяю OLD анимации...")
+    
+    -- Default Injured
+    local Default_Injured_Walk = animFolder:FindFirstChild("Default_Injured_Walk")
+    if Default_Injured_Walk and Default_Injured_Walk:IsA("Animation") then
+        Default_Injured_Walk.AnimationId = "rbxassetid://8497951749"
+        print("  Default_Injured_Walk = rbxassetid://8497951749")
+    end
+    
+    local Default_Injured_Run = animFolder:FindFirstChild("Default_Injured_Run")
+    if Default_Injured_Run and Default_Injured_Run:IsA("Animation") then
+        Default_Injured_Run.AnimationId = "rbxassetid://13417228721"
+        Default_Injured_Run:SetAttribute("Speed", 0.39)
+        print("  Default_Injured_Run = rbxassetid://13417228721 (Speed=0.39)")
+    end
+    
+    local Medkit_Injured_Run = animFolder:FindFirstChild("Medkit_Injured_Run")
+    if Medkit_Injured_Run and Medkit_Injured_Run:IsA("Animation") then
+        Medkit_Injured_Run.AnimationId = "rbxassetid://13417282721"
+        Medkit_Injured_Run:SetAttribute("Speed", 0.39)
+        print("  Medkit_Injured_Run = rbxassetid://13417282721 (Speed=0.39)")
+    end
+    
+    local Default_Injured_Idle = animFolder:FindFirstChild("Default_Injured_Idle")
+    if Default_Injured_Idle and Default_Injured_Idle:IsA("Animation") then
+        Default_Injured_Idle.AnimationId = "rbxassetid://13417291384"
+        print("  Default_Injured_Idle = rbxassetid://13417291384")
+    end
+    
+    local Default_Injured_Crouch_Walk = animFolder:FindFirstChild("Default_Injured_Crouch_Walk")
+    if Default_Injured_Crouch_Walk and Default_Injured_Crouch_Walk:IsA("Animation") then
+        Default_Injured_Crouch_Walk.AnimationId = "rbxassetid://13417640847"
+        print("  Default_Injured_Crouch_Walk = rbxassetid://13417640847")
+    end
+    
+    local Default_Injured_Crouch_Idle = animFolder:FindFirstChild("Default_Injured_Crouch_Idle")
+    if Default_Injured_Crouch_Idle and Default_Injured_Crouch_Idle:IsA("Animation") then
+        Default_Injured_Crouch_Idle.AnimationId = "rbxassetid://13417692019"
+        print("  Default_Injured_Crouch_Idle = rbxassetid://13417692019")
+    end
+    
+    -- Default Normal
+    local Default_Walk = animFolder:FindFirstChild("Default_Walk")
+    if Default_Walk and Default_Walk:IsA("Animation") then
+        Default_Walk.AnimationId = "rbxassetid://13417592417"
+        print("  Default_Walk = rbxassetid://13417592417")
+    end
+    
+    local Default_Idle = animFolder:FindFirstChild("Default_Idle")
+    if Default_Idle and Default_Idle:IsA("Animation") then
+        Default_Idle.AnimationId = "rbxassetid://15929411259"
+        print("  Default_Idle = rbxassetid://15929411259")
+    end
+    
+    local Default_Crouch_Walk = animFolder:FindFirstChild("Default_Crouch_Walk")
+    if Default_Crouch_Walk and Default_Crouch_Walk:IsA("Animation") then
+        Default_Crouch_Walk.AnimationId = "rbxassetid://13417637304"
+        print("  Default_Crouch_Walk = rbxassetid://13417637304")
+    end
+    
+    local Default_Crouch_Idle = animFolder:FindFirstChild("Default_Crouch_Idle")
+    if Default_Crouch_Idle and Default_Crouch_Idle:IsA("Animation") then
+        Default_Crouch_Idle.AnimationId = "rbxassetid://13417701666"
+        print("  Default_Crouch_Idle = rbxassetid://13417701666")
+    end
+    
+    local Default_Crawl_Walk = animFolder:FindFirstChild("Default_Crawl_Walk")
+    if Default_Crawl_Walk and Default_Crawl_Walk:IsA("Animation") then
+        Default_Crawl_Walk.AnimationId = "rbxassetid://14288523957"
+        print("  Default_Crawl_Walk = rbxassetid://14288523957")
+    end
+    
+    local Default_Crawl_Idle = animFolder:FindFirstChild("Default_Crawl_Idle")
+    if Default_Crawl_Idle and Default_Crawl_Idle:IsA("Animation") then
+        Default_Crawl_Idle.AnimationId = "rbxassetid://16866513397"
+        print("  Default_Crawl_Idle = rbxassetid://16866513397")
+    end
+    
+    local Default_Run = animFolder:FindFirstChild("Default_Run")
+    if Default_Run and Default_Run:IsA("Animation") then
+        Default_Run.AnimationId = "rbxassetid://13988521481"
+        print("  Default_Run = rbxassetid://13988521481")
+    end
+    
+    local Medkit_Run = animFolder:FindFirstChild("Medkit_Run")
+    if Medkit_Run and Medkit_Run:IsA("Animation") then
+        Medkit_Run.AnimationId = "rbxassetid://13417682705"
+        print("  Medkit_Run = rbxassetid://13417682705")
+    end
+    
+    print("\n" .. string.rep("=", 50))
+    print("Все анимации успешно заменены на OLD версии!")
+    print(string.rep("=", 50))
+    
+    return true
+end
+
+local function monitorSpeed()
+    while OldAnims.Enabled do
+        task.wait(2)
+        
+        local targetAssets = ReplicatedStorage:FindFirstChild("Game_Assets")
+        if targetAssets then
+            local targetAnimations = targetAssets:FindFirstChild("Animations")
+            if targetAnimations then
+                local targetMovement = targetAnimations:FindFirstChild("Movement")
+                if targetMovement then
+                    local animFolder = targetMovement:FindFirstChild("Survivor")
+                    if animFolder then
+                        local injuredRun = animFolder:FindFirstChild("Default_Injured_Run")
+                        if injuredRun and injuredRun:IsA("Animation") then
+                            local speed = injuredRun:GetAttribute("Speed")
+                            if speed ~= 0.39 then
+                                injuredRun:SetAttribute("Speed", 0.39)
                             end
-                            
-                            local medkitRun = animFolder:FindFirstChild("Medkit_Injured_Run")
-                            if medkitRun and medkitRun:IsA("Animation") then
-                                local speed = medkitRun:GetAttribute("Speed")
-                                if speed ~= 0.39 then
-                                    medkitRun:SetAttribute("Speed", 0.39)
-                                end
+                        end
+                        
+                        local medkitRun = animFolder:FindFirstChild("Medkit_Injured_Run")
+                        if medkitRun and medkitRun:IsA("Animation") then
+                            local speed = medkitRun:GetAttribute("Speed")
+                            if speed ~= 0.39 then
+                                medkitRun:SetAttribute("Speed", 0.39)
                             end
                         end
                     end
@@ -5275,12 +5257,31 @@ if GameMode == "LOBBY" and _G.Settings.OldAnims_Enabled then
             end
         end
     end
-    
-    -- Запуск OLD анимаций
+end
+
+local function waitForFolders()
+    local attempts = 0
+    while attempts < 30 do
+        local targetAssets = ReplicatedStorage:FindFirstChild("Game_Assets")
+        if targetAssets then
+            return true
+        end
+        task.wait(1)
+        attempts = attempts + 1
+    end
+    return false
+end
+
+-- Запуск OLD анимаций в GAME режиме, если включено в конфиге
+if GameMode == "GAME" and _G.Settings.OldAnims_Enabled then
     task.spawn(function()
-        task.wait(2)
-        if replaceAnimations() then
-            task.spawn(monitorSpeed)
+        task.wait(3)
+        if waitForFolders() then
+            task.wait(1)
+            if replaceAnimations() then
+                OldAnims.Applied = true
+                task.spawn(monitorSpeed)
+            end
         end
     end)
 end
@@ -5951,34 +5952,19 @@ local function updateTabs()
     
     Content.CanvasSize = UDim2.new(0, 0, 0, 0)
     
-    local yPos = 0
+    local yPos = 5
     
     local roleIndicator = Instance.new("TextLabel")
     roleIndicator.Size = UDim2.new(1, -20, 0, 25)
     roleIndicator.Position = UDim2.new(0, 10, 0, yPos)
     roleIndicator.BackgroundTransparency = 1
-    roleIndicator.Text = "Current Role: " .. CurrentRole .. " | Mode: " .. GameMode
+    roleIndicator.Text = CurrentRole .. " | " .. GameMode
     roleIndicator.TextColor3 = Color3.fromRGB(180, 80, 255)
     roleIndicator.TextSize = 14
     roleIndicator.Font = Enum.Font.Gotham
     roleIndicator.TextXAlignment = Enum.TextXAlignment.Center
     roleIndicator.Parent = Content
-    
-    if _G.Settings.OldAnims_Enabled then
-        local oldAnimsIndicator = Instance.new("TextLabel")
-        oldAnimsIndicator.Size = UDim2.new(1, -20, 0, 20)
-        oldAnimsIndicator.Position = UDim2.new(0, 10, 0, 25)
-        oldAnimsIndicator.BackgroundTransparency = 1
-        oldAnimsIndicator.Text = "🎭 OLD ANIMS ENABLED (from config)"
-        oldAnimsIndicator.TextColor3 = Color3.fromRGB(200, 100, 255)
-        oldAnimsIndicator.TextSize = 12
-        oldAnimsIndicator.Font = Enum.Font.Gotham
-        oldAnimsIndicator.TextXAlignment = Enum.TextXAlignment.Center
-        oldAnimsIndicator.Parent = Content
-        yPos = yPos + 30
-    end
-    
-    yPos = yPos + 35
+    yPos = yPos + 30
     
     if GameMode == "LOBBY" then
         -- LOBBY MODE - только Functions и Config
@@ -5987,22 +5973,19 @@ local function updateTabs()
             functionsCategory.Position = UDim2.new(0, 10, 0, yPos)
             yPos = yPos + 45
             
-            -- Фиолетовая кнопка Reward
-            local rewardButton = createButton("🎁 REWARD TELEPORT", Color3.fromRGB(160, 80, 255), function()
+            local rewardButton = createButton("REWARD TELEPORT", Color3.fromRGB(160, 80, 255), function()
                 teleportToReward()
             end)
             rewardButton.Position = UDim2.new(0, 10, 0, yPos)
             yPos = yPos + 50
             
-            -- Переключатель Old Anims
-            local oldAnimsToggle = createToggle("Enable Old Anims", _G.Settings.OldAnims_Enabled, function(value)
+            local oldAnimsToggle = createToggle("Old Anims", _G.Settings.OldAnims_Enabled, function(value)
                 _G.Settings.OldAnims_Enabled = value
                 game:GetService("StarterGui"):SetCore("SendNotification", {
                     Title = "Old Anims",
                     Text = "Restart script to apply",
                     Duration = 2
                 })
-                print("🎭 Old Anims set to: " .. tostring(value) .. " (will apply on restart)")
             end)
             oldAnimsToggle.Position = UDim2.new(0, 10, 0, yPos)
             yPos = yPos + 40
@@ -6010,48 +5993,35 @@ local function updateTabs()
             Content.CanvasSize = UDim2.new(0, 0, 0, yPos + 20)
             
         elseif currentTab == "Config" then
-            local configCategory = createCategory("Config Management")
+            local configCategory = createCategory("CONFIG")
             configCategory.Position = UDim2.new(0, 10, 0, yPos)
             yPos = yPos + 45
             
-            local saveButton = createButton("💾 SAVE CONFIG", Color3.fromRGB(110, 85, 210), function()
+            local saveButton = createButton("SAVE CONFIG", Color3.fromRGB(110, 85, 210), function()
                 _G.SaveConfig()
             end)
             saveButton.Position = UDim2.new(0, 10, 0, yPos)
             yPos = yPos + 50
             
-            local resetButton = createButton("🔄 RESET CONFIG", Color3.fromRGB(110, 85, 210), function()
+            local resetButton = createButton("RESET CONFIG", Color3.fromRGB(110, 85, 210), function()
                 _G.ResetConfig()
                 
                 game:GetService("StarterGui"):SetCore("SendNotification", {
                     Title = "Config",
-                    Text = "Universal Config Reset!",
+                    Text = "Reset!",
                     Duration = 2
                 })
             end)
             resetButton.Position = UDim2.new(0, 10, 0, yPos)
             yPos = yPos + 50
             
-            local infoText = Instance.new("TextLabel")
-            infoText.Size = UDim2.new(1, -20, 0, 60)
-            infoText.Position = UDim2.new(0, 10, 0, yPos)
-            infoText.BackgroundTransparency = 1
-            infoText.Text = "UNIVERSAL CONFIG\nSettings saved here work in BOTH Lobby and Game!\nOld Anims setting will sync across modes"
-            infoText.TextColor3 = Color3.fromRGB(200, 150, 255)
-            infoText.TextSize = 12
-            infoText.Font = Enum.Font.Gotham
-            infoText.TextWrapped = true
-            infoText.TextXAlignment = Enum.TextXAlignment.Center
-            infoText.Parent = Content
-            yPos = yPos + 70
-            
             Content.CanvasSize = UDim2.new(0, 0, 0, yPos + 20)
         end
         
     elseif GameMode == "GAME" then
-        -- GAME MODE - все функции (кроме reward и old anims)
+        -- GAME MODE - все функции (кроме reward)
         if currentTab == "Visuals" then
-            local espCategory = createCategory("Player ESP")
+            local espCategory = createCategory("PLAYER ESP")
             espCategory.Position = UDim2.new(0, 10, 0, yPos)
             yPos = yPos + 45
             
@@ -6104,7 +6074,7 @@ local function updateTabs()
             espMaxDistanceSlider.Position = UDim2.new(0, 10, 0, yPos)
             yPos = yPos + 55
             
-            local objectESPCategory = createCategory("Object ESP")
+            local objectESPCategory = createCategory("OBJECT ESP")
             objectESPCategory.Position = UDim2.new(0, 10, 0, yPos)
             yPos = yPos + 45
             
@@ -6197,12 +6167,10 @@ local function updateTabs()
             chestToggle.Position = UDim2.new(0, 10, 0, yPos)
             yPos = yPos + 40
             
-            -- RGB секция
-            local rgbCategory = createCategory("ESP Color Settings")
+            local rgbCategory = createCategory("ESP COLORS")
             rgbCategory.Position = UDim2.new(0, 10, 0, yPos)
             yPos = yPos + 45
             
-            -- Killer RGB
             local killerRGB = createRGBSliders("KILLER", 
                 _G.Settings.ESP_KillerColor_R,
                 _G.Settings.ESP_KillerColor_G,
@@ -6216,7 +6184,6 @@ local function updateTabs()
             killerRGB.Position = UDim2.new(0, 10, 0, yPos)
             yPos = yPos + 130
             
-            -- Survivor RGB
             local survivorRGB = createRGBSliders("SURVIVOR", 
                 _G.Settings.ESP_SurvivorColor_R,
                 _G.Settings.ESP_SurvivorColor_G,
@@ -6230,7 +6197,6 @@ local function updateTabs()
             survivorRGB.Position = UDim2.new(0, 10, 0, yPos)
             yPos = yPos + 130
             
-            -- Object RGB
             local objectRGB = createRGBSliders("OBJECT", 
                 _G.Settings.ESP_ObjectColor_R,
                 _G.Settings.ESP_ObjectColor_G,
@@ -6256,7 +6222,7 @@ local function updateTabs()
             Content.CanvasSize = UDim2.new(0, 0, 0, yPos + 20)
             
         elseif currentTab == "SpeedHack" then
-            local speedCategory = createCategory("Speed Hack")
+            local speedCategory = createCategory("SPEED HACK")
             speedCategory.Position = UDim2.new(0, 10, 0, yPos)
             yPos = yPos + 45
             
@@ -6291,7 +6257,7 @@ local function updateTabs()
             speedSlider.Position = UDim2.new(0, 10, 0, yPos)
             yPos = yPos + 55
             
-            local defaultSpeedCategory = createCategory("Default Speed")
+            local defaultSpeedCategory = createCategory("DEFAULT SPEED")
             defaultSpeedCategory.Position = UDim2.new(0, 10, 0, yPos)
             yPos = yPos + 45
             
@@ -6311,7 +6277,7 @@ local function updateTabs()
             defaultSpeedSlider.Position = UDim2.new(0, 10, 0, yPos)
             yPos = yPos + 55
             
-            local windowVaultCategory = createCategory("Window Vault Speed")
+            local windowVaultCategory = createCategory("WINDOW VAULT")
             windowVaultCategory.Position = UDim2.new(0, 10, 0, yPos)
             yPos = yPos + 45
             
@@ -6331,7 +6297,7 @@ local function updateTabs()
             windowVaultSlider.Position = UDim2.new(0, 10, 0, yPos)
             yPos = yPos + 55
             
-            local dashCategory = createCategory("Dash")
+            local dashCategory = createCategory("DASH")
             dashCategory.Position = UDim2.new(0, 10, 0, yPos)
             yPos = yPos + 45
             
@@ -6352,8 +6318,7 @@ local function updateTabs()
             Content.CanvasSize = UDim2.new(0, 0, 0, yPos + 20)
             
         elseif currentTab == "Functions" then
-            -- General Section
-            local generalCategory = createCategory("General")
+            local generalCategory = createCategory("GENERAL")
             generalCategory.Position = UDim2.new(0, 10, 0, yPos)
             yPos = yPos + 45
             
@@ -6383,13 +6348,12 @@ local function updateTabs()
                 yPos = yPos + 40
             end
             
-            -- Health Section
-            local healthCategory = createCategory("Health")
+            local healthCategory = createCategory("HEALTH")
             healthCategory.Position = UDim2.new(0, 10, 0, yPos)
             yPos = yPos + 45
             
             if CurrentRole == "Survivor" then
-                local selfHealToggle = createToggle("Enable Self-Heal", SelfHeal.Enabled, function(value)
+                local selfHealToggle = createToggle("Self-Heal", SelfHeal.Enabled, function(value)
                     SelfHeal.Enabled = value
                     _G.Settings.SelfHeal_Enabled = value
                     if not value and SelfHeal.Active then
@@ -6400,7 +6364,7 @@ local function updateTabs()
                 selfHealToggle.Position = UDim2.new(0, 10, 0, yPos)
                 yPos = yPos + 40
                 
-                local healthStateToggle = createToggle("Enable Health State Change", HealthStateChange.Enabled, function(value)
+                local healthStateToggle = createToggle("Health State Change", HealthStateChange.Enabled, function(value)
                     HealthStateChange.Enabled = value
                     _G.Settings.HealthStateChange_Enabled = value
                     updateHealthStateChange()
@@ -6409,8 +6373,7 @@ local function updateTabs()
                 yPos = yPos + 40
             end
             
-            -- Instant Section
-            local instantCategory = createCategory("Instant")
+            local instantCategory = createCategory("INSTANT")
             instantCategory.Position = UDim2.new(0, 10, 0, yPos)
             yPos = yPos + 45
             
@@ -6439,9 +6402,8 @@ local function updateTabs()
                 yPos = yPos + 40
             end
             
-            -- Killer Section
             if CurrentRole == "Killer" then
-                local killerCategory = createCategory("Killer")
+                local killerCategory = createCategory("KILLER")
                 killerCategory.Position = UDim2.new(0, 10, 0, yPos)
                 yPos = yPos + 45
                 
@@ -6485,12 +6447,11 @@ local function updateTabs()
                 yPos = yPos + 40
             end
             
-            -- Flight & Jump
-            local flyJumpCategory = createCategory("Flight & Jump")
+            local flyJumpCategory = createCategory("FLIGHT & JUMP")
             flyJumpCategory.Position = UDim2.new(0, 10, 0, yPos)
             yPos = yPos + 45
             
-            local jumpToggle = createToggle("Enable Jump", Jump.Enabled, function(value)
+            local jumpToggle = createToggle("Jump", Jump.Enabled, function(value)
                 Jump.Enabled = value
                 _G.Settings.Jump_Enabled = value
             end)
@@ -6504,7 +6465,7 @@ local function updateTabs()
             jumpPowerSlider.Position = UDim2.new(0, 10, 0, yPos)
             yPos = yPos + 55
             
-            local flyToggle = createToggle("Enable Fly (V)", Fly.Enabled, function(value)
+            local flyToggle = createToggle("Fly (V)", Fly.Enabled, function(value)
                 Fly.Enabled = value
                 _G.Settings.Fly_Enabled = value
                 if not value and Fly.Active then
@@ -6524,11 +6485,11 @@ local function updateTabs()
             Content.CanvasSize = UDim2.new(0, 0, 0, yPos + 20)
             
         elseif currentTab == "Auto" then
-            local autoCategory = createCategory("Auto SkillCheck")
+            local autoCategory = createCategory("AUTO SKILLCHECK")
             autoCategory.Position = UDim2.new(0, 10, 0, yPos)
             yPos = yPos + 45
             
-            local autoSkillCheckToggle = createToggle("Enable Auto SkillCheck", AutoSkillCheck.Enabled, function(value)
+            local autoSkillCheckToggle = createToggle("Auto SkillCheck", AutoSkillCheck.Enabled, function(value)
                 AutoSkillCheck.Enabled = value
                 _G.Settings.AutoSkillCheck_Enabled = value
                 updateAutoSkillCheck()
@@ -6537,11 +6498,11 @@ local function updateTabs()
             yPos = yPos + 40
             
             if CurrentRole == "Survivor" then
-                local moonwalkCategory = createCategory("Auto Moonwalk")
+                local moonwalkCategory = createCategory("AUTO MOONWALK")
                 moonwalkCategory.Position = UDim2.new(0, 10, 0, yPos)
                 yPos = yPos + 45
                 
-                local moonwalkToggle = createToggle("Enable Auto Moonwalk", Moonwalk.Enabled, function(value)
+                local moonwalkToggle = createToggle("Moonwalk", Moonwalk.Enabled, function(value)
                     Moonwalk.Enabled = value
                     _G.Settings.Moonwalk_Enabled = value
                     if not value and Moonwalk.Active then
@@ -6562,11 +6523,11 @@ local function updateTabs()
             Content.CanvasSize = UDim2.new(0, 0, 0, yPos + 20)
             
         elseif currentTab == "Keybinds" then
-            local keybindsCategory = createCategory("Keybinds")
+            local keybindsCategory = createCategory("KEYBINDS")
             keybindsCategory.Position = UDim2.new(0, 10, 0, yPos)
             yPos = yPos + 45
             
-            local generalCategory = createCategory("General")
+            local generalCategory = createCategory("GENERAL")
             generalCategory.Position = UDim2.new(0, 10, 0, yPos)
             yPos = yPos + 30
             
@@ -6583,7 +6544,7 @@ local function updateTabs()
             menuKeybindDelete.Position = UDim2.new(0, 10, 0, yPos)
             yPos = yPos + 40
             
-            local selectCategory = createCategory("Select System")
+            local selectCategory = createCategory("SELECT SYSTEM")
             selectCategory.Position = UDim2.new(0, 10, 0, yPos)
             yPos = yPos + 30
             
@@ -6623,7 +6584,7 @@ local function updateTabs()
                 yPos = yPos + 40
             end
             
-            local speedCategory = createCategory("SpeedHack")
+            local speedCategory = createCategory("SPEED")
             speedCategory.Position = UDim2.new(0, 10, 0, yPos)
             yPos = yPos + 30
             
@@ -6641,7 +6602,7 @@ local function updateTabs()
             dashKeybind.Position = UDim2.new(0, 10, 0, yPos)
             yPos = yPos + 40
             
-            local functionsCategory = createCategory("Functions")
+            local functionsCategory = createCategory("FUNCTIONS")
             functionsCategory.Position = UDim2.new(0, 10, 0, yPos)
             yPos = yPos + 30
             
@@ -6705,7 +6666,7 @@ local function updateTabs()
             noCollisionKeybind.Position = UDim2.new(0, 10, 0, yPos)
             yPos = yPos + 40
             
-            local emoteKeybindsCategory = createCategory("Emote System (3 Pages)")
+            local emoteKeybindsCategory = createCategory("EMOTE SYSTEM")
             emoteKeybindsCategory.Position = UDim2.new(0, 10, 0, yPos)
             yPos = yPos + 30
             
@@ -6736,11 +6697,11 @@ local function updateTabs()
             Content.CanvasSize = UDim2.new(0, 0, 0, yPos + 20)
             
         elseif currentTab == "MISC" then
-            local blindProgressCategory = createCategory("Blind Progress")
+            local blindProgressCategory = createCategory("BLIND PROGRESS")
             blindProgressCategory.Position = UDim2.new(0, 10, 0, yPos)
             yPos = yPos + 45
             
-            local blindProgressToggle = createToggle("Enable Blind Progress", Misc.BlindProgress.Enabled, function(value)
+            local blindProgressToggle = createToggle("Blind Progress", Misc.BlindProgress.Enabled, function(value)
                 Misc.BlindProgress.Enabled = value
                 _G.Settings.BlindProgress_Enabled = value
                 updateBlindProgress()
@@ -6748,11 +6709,11 @@ local function updateTabs()
             blindProgressToggle.Position = UDim2.new(0, 10, 0, yPos)
             yPos = yPos + 40
             
-            local fullbrightCategory = createCategory("Fullbright")
+            local fullbrightCategory = createCategory("FULLBRIGHT")
             fullbrightCategory.Position = UDim2.new(0, 10, 0, yPos)
             yPos = yPos + 45
             
-            local fullbrightToggle = createToggle("Enable Fullbright", Misc.Fullbright.Enabled, function(value)
+            local fullbrightToggle = createToggle("Fullbright", Misc.Fullbright.Enabled, function(value)
                 Misc.Fullbright.Enabled = value
                 _G.Settings.Fullbright_Enabled = value
                 updateFullbright()
@@ -6760,11 +6721,11 @@ local function updateTabs()
             fullbrightToggle.Position = UDim2.new(0, 10, 0, yPos)
             yPos = yPos + 40
             
-            local miniHudCategory = createCategory("Mini HUD")
+            local miniHudCategory = createCategory("MINI HUD")
             miniHudCategory.Position = UDim2.new(0, 10, 0, yPos)
             yPos = yPos + 45
             
-            local miniHudToggle = createToggle("Enable Mini HUD", MiniHUD.Enabled, function(value)
+            local miniHudToggle = createToggle("Mini HUD", MiniHUD.Enabled, function(value)
                 MiniHUD.Enabled = value
                 _G.Settings.MiniHUD_Enabled = value
                 updateMiniHUDVisibility()
@@ -6772,11 +6733,11 @@ local function updateTabs()
             miniHudToggle.Position = UDim2.new(0, 10, 0, yPos)
             yPos = yPos + 40
             
-            local fovCategory = createCategory("FOV Changer")
+            local fovCategory = createCategory("FOV")
             fovCategory.Position = UDim2.new(0, 10, 0, yPos)
             yPos = yPos + 45
             
-            local fovToggle = createToggle("Enable FOV Changer", FOVChanger.Enabled, function(value)
+            local fovToggle = createToggle("FOV Changer", FOVChanger.Enabled, function(value)
                 FOVChanger.Enabled = value
                 _G.Settings.FOVChanger_Enabled = value
                 updateFOV()
@@ -6792,11 +6753,11 @@ local function updateTabs()
             fovSlider.Position = UDim2.new(0, 10, 0, yPos)
             yPos = yPos + 55
             
-            local drawFovCategory = createCategory("Draw FOV")
+            local drawFovCategory = createCategory("DRAW FOV")
             drawFovCategory.Position = UDim2.new(0, 10, 0, yPos)
             yPos = yPos + 45
             
-            local drawFovToggle = createToggle("Enable Draw FOV", DrawFOV.Enabled, function(value)
+            local drawFovToggle = createToggle("Draw FOV", DrawFOV.Enabled, function(value)
                 DrawFOV.Enabled = value
                 _G.Settings.DrawFOV_Enabled = value
                 updateDrawFOV()
@@ -6812,11 +6773,11 @@ local function updateTabs()
             fovRadiusSlider.Position = UDim2.new(0, 10, 0, yPos)
             yPos = yPos + 55
             
-            local resCategory = createCategory("Resolution Modifier")
+            local resCategory = createCategory("RESOLUTION")
             resCategory.Position = UDim2.new(0, 10, 0, yPos)
             yPos = yPos + 45
             
-            local resToggle = createToggle("Enable Resolution Mod", Misc.ResolutionModifier.Enabled, function(value)
+            local resToggle = createToggle("Resolution Mod", Misc.ResolutionModifier.Enabled, function(value)
                 Misc.ResolutionModifier.Enabled = value
                 _G.Settings.ResolutionModifier_Enabled = value
                 updateResolutionModifier()
@@ -6835,17 +6796,17 @@ local function updateTabs()
             Content.CanvasSize = UDim2.new(0, 0, 0, yPos + 20)
             
         elseif currentTab == "Config" then
-            local configCategory = createCategory("Config Management")
+            local configCategory = createCategory("CONFIG")
             configCategory.Position = UDim2.new(0, 10, 0, yPos)
             yPos = yPos + 45
             
-            local saveButton = createButton("💾 SAVE CONFIG", Color3.fromRGB(110, 85, 210), function()
+            local saveButton = createButton("SAVE CONFIG", Color3.fromRGB(110, 85, 210), function()
                 _G.SaveConfig()
             end)
             saveButton.Position = UDim2.new(0, 10, 0, yPos)
             yPos = yPos + 50
             
-            local resetButton = createButton("🔄 RESET CONFIG", Color3.fromRGB(110, 85, 210), function()
+            local resetButton = createButton("RESET CONFIG", Color3.fromRGB(110, 85, 210), function()
                 _G.ResetConfig()
                 
                 -- Обновляем все значения в скрипте после сброса
@@ -6998,25 +6959,12 @@ local function updateTabs()
                 
                 game:GetService("StarterGui"):SetCore("SendNotification", {
                     Title = "Config",
-                    Text = "Universal Reset Complete!",
+                    Text = "Reset!",
                     Duration = 2
                 })
             end)
             resetButton.Position = UDim2.new(0, 10, 0, yPos)
             yPos = yPos + 50
-            
-            local infoText = Instance.new("TextLabel")
-            infoText.Size = UDim2.new(1, -20, 0, 60)
-            infoText.Position = UDim2.new(0, 10, 0, yPos)
-            infoText.BackgroundTransparency = 1
-            infoText.Text = "UNIVERSAL CONFIG\nSettings saved here work in BOTH Lobby and Game!\nOld Anims setting will sync across modes"
-            infoText.TextColor3 = Color3.fromRGB(200, 150, 255)
-            infoText.TextSize = 12
-            infoText.Font = Enum.Font.Gotham
-            infoText.TextWrapped = true
-            infoText.TextXAlignment = Enum.TextXAlignment.Center
-            infoText.Parent = Content
-            yPos = yPos + 70
             
             Content.CanvasSize = UDim2.new(0, 0, 0, yPos + 20)
         end
@@ -7085,7 +7033,7 @@ local function initializeGUI()
     versionLabel.Size = UDim2.new(0, 60, 1, 0)
     versionLabel.Position = UDim2.new(0, 10, 0, 0)
     versionLabel.BackgroundTransparency = 1
-    versionLabel.Text = "v1.6.6"
+    versionLabel.Text = "v1.6.7"
     versionLabel.TextColor3 = Color3.fromRGB(160, 140, 220)
     versionLabel.TextSize = 12
     versionLabel.Font = Enum.Font.Gotham
@@ -7095,7 +7043,7 @@ local function initializeGUI()
     local title = Instance.new("TextLabel")
     title.Size = UDim2.new(1, 0, 1, 0)
     title.BackgroundTransparency = 1
-    title.Text = "SQWIRT FROM SABLE DLC - " .. CurrentRole .. " [" .. GameMode .. "]"
+    title.Text = "SQWIRT FROM SABLE DLC"
     title.TextColor3 = Color3.fromRGB(200, 180, 255)
     title.TextSize = 16
     title.Font = Enum.Font.Gotham
@@ -7470,10 +7418,10 @@ print("════════════════════════�
 print("  Mode:    " .. GameMode)
 print("  Role:    " .. CurrentRole)
 print("  Key:     " .. _G.Settings.MenuKey)
-if _G.Settings.OldAnims_Enabled then
-    print("  🎭 Old Anims: ENABLED (universal)")
-else
-    print("  🎭 Old Anims: DISABLED (universal)")
+if _G.Settings.OldAnims_Enabled and GameMode == "GAME" then
+    print("  Old Anims: ENABLED")
+elseif _G.Settings.OldAnims_Enabled and GameMode == "LOBBY" then
+    print("  Old Anims: ENABLED (will apply in game)")
 end
 print("═══════════════════════════════════")
 
