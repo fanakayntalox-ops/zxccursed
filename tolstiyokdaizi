@@ -1,12 +1,12 @@
 -- Cheat Injection Notification Script for Roblox
 -- Title: SQWIRT FROM SABLE DLC for destruction DBR
--- FINAL VERSION v1.6.4 - FULLY FIXED ESP & NOTIFICATIONS
+-- FINAL VERSION v1.6.5 - LOBBY/GAME SEPARATION
 
 -- ==================== ОПРЕДЕЛЕНИЕ РЕЖИМА ====================
 local PlaceId = game.PlaceId
 local GameMode = "UNKNOWN"
 
--- ID игры
+-- ID игры (замени на актуальные ID)
 if PlaceId == 14904820737 then
     GameMode = "LOBBY"
 elseif PlaceId == 14904829680 then
@@ -1250,43 +1250,72 @@ local MENU_SIZE = UDim2.new(0, 800, 0, 550)
 
 local isMenuInitialized = false
 local isMenuOpen = false
-local currentTab = "Visuals"
+local currentTab = "Functions"
 
--- Commands based on role
-local CommandSystem = {
-    Survivor = {
-        Tabs = {"Visuals", "SpeedHack", "Functions", "Auto", "Keybinds", "MISC", "Config"},
-        Functions = {
-            NoFallStun = _G.Settings.NoFallStun_Enabled,
-            Fly = _G.Settings.Fly_Enabled,
-            Jump = _G.Settings.Jump_Enabled,
-            HealthStateChange = _G.Settings.HealthStateChange_Enabled,
-            BugPallet = _G.Settings.BugPallet_Enabled,
-            NoCollision = _G.Settings.NoCollision_Enabled,
-            SelfHeal = _G.Settings.SelfHeal_Enabled,
-            InstaHit = _G.Settings.InstaHit_Enabled,
-            InstaRescue = _G.Settings.InstaRescue_Enabled
-        }
-    },
-    Killer = {
-        Tabs = {"Visuals", "SpeedHack", "Functions", "Auto", "Keybinds", "MISC", "Config"},
-        Functions = {
-            NoFallStun = _G.Settings.NoFallStun_Enabled,
-            Fly = _G.Settings.Fly_Enabled,
-            Jump = _G.Settings.Jump_Enabled,
-            HealthStateChange = false,
-            LungeBoost = _G.Settings.LungeBoost_Enabled,
-            InfiniteLunge = _G.Settings.InfiniteLunge_Enabled,
-            NoStunBeforeMiss = _G.Settings.NoStunBeforeMiss_Enabled,
-            InfiniteBlinks = _G.Settings.InfiniteBlinks_Enabled,
-            NoCollision = _G.Settings.NoCollision_Enabled,
-            SelfHeal = false,
-            InstaHit = _G.Settings.InstaHit_Enabled,
-            InstaRescue = false,
-            InstaHook = _G.Settings.InstaHook_Enabled
+-- Commands based on role and game mode
+local CommandSystem = {}
+
+if GameMode == "LOBBY" then
+    -- LOBBY MODE - только Functions и Config
+    CommandSystem = {
+        Survivor = {
+            Tabs = {"Functions", "Config"},
+            Functions = {}
+        },
+        Killer = {
+            Tabs = {"Functions", "Config"},
+            Functions = {}
         }
     }
-}
+elseif GameMode == "GAME" then
+    -- GAME MODE - все функции (кроме reward и old anims)
+    CommandSystem = {
+        Survivor = {
+            Tabs = {"Visuals", "SpeedHack", "Functions", "Auto", "Keybinds", "MISC", "Config"},
+            Functions = {
+                NoFallStun = _G.Settings.NoFallStun_Enabled,
+                Fly = _G.Settings.Fly_Enabled,
+                Jump = _G.Settings.Jump_Enabled,
+                HealthStateChange = _G.Settings.HealthStateChange_Enabled,
+                BugPallet = _G.Settings.BugPallet_Enabled,
+                NoCollision = _G.Settings.NoCollision_Enabled,
+                SelfHeal = _G.Settings.SelfHeal_Enabled,
+                InstaHit = _G.Settings.InstaHit_Enabled,
+                InstaRescue = _G.Settings.InstaRescue_Enabled
+            }
+        },
+        Killer = {
+            Tabs = {"Visuals", "SpeedHack", "Functions", "Auto", "Keybinds", "MISC", "Config"},
+            Functions = {
+                NoFallStun = _G.Settings.NoFallStun_Enabled,
+                Fly = _G.Settings.Fly_Enabled,
+                Jump = _G.Settings.Jump_Enabled,
+                HealthStateChange = false,
+                LungeBoost = _G.Settings.LungeBoost_Enabled,
+                InfiniteLunge = _G.Settings.InfiniteLunge_Enabled,
+                NoStunBeforeMiss = _G.Settings.NoStunBeforeMiss_Enabled,
+                InfiniteBlinks = _G.Settings.InfiniteBlinks_Enabled,
+                NoCollision = _G.Settings.NoCollision_Enabled,
+                SelfHeal = false,
+                InstaHit = _G.Settings.InstaHit_Enabled,
+                InstaRescue = false,
+                InstaHook = _G.Settings.InstaHook_Enabled
+            }
+        }
+    }
+else
+    -- UNKNOWN MODE - минимальный функционал
+    CommandSystem = {
+        Survivor = {
+            Tabs = {"Functions", "Config"},
+            Functions = {}
+        },
+        Killer = {
+            Tabs = {"Functions", "Config"},
+            Functions = {}
+        }
+    }
+end
 
 -- ==================== AUTO MOONWALK ====================
 
@@ -5395,7 +5424,6 @@ local function createToggle(text, defaultValue, callback)
     return toggleFrame
 end
 
--- ИСПРАВЛЕННАЯ ФУНКЦИЯ СОЗДАНИЯ СЛАЙДЕРА
 local function createSlider(text, min, max, defaultValue, step, callback)
     local sliderFrame = Instance.new("Frame")
     sliderFrame.Name = "Slider_" .. text
@@ -5515,7 +5543,6 @@ local function createSlider(text, min, max, defaultValue, step, callback)
     return sliderFrame
 end
 
--- Функция для создания RGB слайдеров (как в примере)
 local function createRGBSliders(title, rVal, gVal, bVal, callback)
     local frame = Instance.new("Frame")
     frame.Name = "RGB_" .. title
@@ -5925,408 +5952,21 @@ local function updateTabs()
     roleIndicator.Parent = Content
     yPos = yPos + 35
     
-    if currentTab == "Visuals" then
-        local espCategory = createCategory("Player ESP")
-        espCategory.Position = UDim2.new(0, 10, 0, yPos)
-        yPos = yPos + 45
-        
-        local espToggle = createToggle("Enable Player ESP", ESP.Enabled, function(value)
-            ESP.Enabled = value
-            _G.Settings.ESP_Enabled = value
-        end)
-        espToggle.Position = UDim2.new(0, 10, 0, yPos)
-        yPos = yPos + 40
-        
-        local espNamesToggle = createToggle("ESP Names", ESP.Names, function(value)
-            ESP.Names = value
-            _G.Settings.ESP_Names = value
-        end)
-        espNamesToggle.Position = UDim2.new(0, 10, 0, yPos)
-        yPos = yPos + 40
-        
-        local espHighlightsToggle = createToggle("Highlights", ESP.Highlights, function(value)
-            ESP.Highlights = value
-            _G.Settings.ESP_Highlights = value
-        end)
-        espHighlightsToggle.Position = UDim2.new(0, 10, 0, yPos)
-        yPos = yPos + 40
-        
-        local espHealthToggle = createToggle("Health ESP", ESP.Health, function(value)
-            ESP.Health = value
-            _G.Settings.ESP_Health = value
-        end)
-        espHealthToggle.Position = UDim2.new(0, 10, 0, yPos)
-        yPos = yPos + 40
-        
-        local espSkeletonsToggle = createToggle("Skeleton ESP", ESP.Skeletons, function(value)
-            ESP.Skeletons = value
-            _G.Settings.ESP_Skeletons = value
-        end)
-        espSkeletonsToggle.Position = UDim2.new(0, 10, 0, yPos)
-        yPos = yPos + 40
-        
-        local espTeamCheckToggle = createToggle("Team Check", ESP.TeamCheck, function(value)
-            ESP.TeamCheck = value
-            _G.Settings.ESP_TeamCheck = value
-        end)
-        espTeamCheckToggle.Position = UDim2.new(0, 10, 0, yPos)
-        yPos = yPos + 40
-        
-        local espMaxDistanceSlider = createSlider("Max Distance", 50, 2000, ESP.MaxDistance, 10, function(value)
-            ESP.MaxDistance = value
-            _G.Settings.ESP_MaxDistance = value
-        end)
-        espMaxDistanceSlider.Position = UDim2.new(0, 10, 0, yPos)
-        yPos = yPos + 55
-        
-        local objectESPCategory = createCategory("Object ESP")
-        objectESPCategory.Position = UDim2.new(0, 10, 0, yPos)
-        yPos = yPos + 45
-        
-        local objectESPToggle = createToggle("Enable Object ESP", ObjectESP.Enabled, function(value)
-            ObjectESP.Enabled = value
-            _G.Settings.ObjectESP_Enabled = value
-            if not value then
-                for objectType, _ in pairs(objectESPData) do
-                    disableObjectESP(objectType)
-                end
-            end
-        end)
-        objectESPToggle.Position = UDim2.new(0, 10, 0, yPos)
-        yPos = yPos + 40
-        
-        local objectDistanceSlider = createSlider("Max Distance", 50, 500, ObjectESP.MaxDistance, 10, function(value)
-            ObjectESP.MaxDistance = value
-            _G.Settings.ObjectESP_MaxDistance = value
-        end)
-        objectDistanceSlider.Position = UDim2.new(0, 10, 0, yPos)
-        yPos = yPos + 55
-        
-        local showDistanceToggle = createToggle("Show Distance", ObjectESP.ShowDistance, function(value)
-            ObjectESP.ShowDistance = value
-            _G.Settings.ObjectESP_ShowDistance = value
-        end)
-        showDistanceToggle.Position = UDim2.new(0, 10, 0, yPos)
-        yPos = yPos + 40
-        
-        local hatchToggle = createToggle("Hatch", ObjectESP.Hatch, function(value)
-            ObjectESP.Hatch = value
-            _G.Settings.ObjectESP_Hatch = value
-        end)
-        hatchToggle.Position = UDim2.new(0, 10, 0, yPos)
-        yPos = yPos + 40
-        
-        local exitGateToggle = createToggle("Exit Gate", ObjectESP.ExitGate, function(value)
-            ObjectESP.ExitGate = value
-            _G.Settings.ObjectESP_ExitGate = value
-        end)
-        exitGateToggle.Position = UDim2.new(0, 10, 0, yPos)
-        yPos = yPos + 40
-        
-        local generatorToggle = createToggle("Generator", ObjectESP.Generator, function(value)
-            ObjectESP.Generator = value
-            _G.Settings.ObjectESP_Generator = value
-        end)
-        generatorToggle.Position = UDim2.new(0, 10, 0, yPos)
-        yPos = yPos + 40
-        
-        local windowToggle = createToggle("Window", ObjectESP.Window, function(value)
-            ObjectESP.Window = value
-            _G.Settings.ObjectESP_Window = value
-        end)
-        windowToggle.Position = UDim2.new(0, 10, 0, yPos)
-        yPos = yPos + 40
-        
-        local hookToggle = createToggle("Hook", ObjectESP.Hook, function(value)
-            ObjectESP.Hook = value
-            _G.Settings.ObjectESP_Hook = value
-        end)
-        hookToggle.Position = UDim2.new(0, 10, 0, yPos)
-        yPos = yPos + 40
-        
-        local palletToggle = createToggle("Pallet", ObjectESP.Pallet, function(value)
-            ObjectESP.Pallet = value
-            _G.Settings.ObjectESP_Pallet = value
-        end)
-        palletToggle.Position = UDim2.new(0, 10, 0, yPos)
-        yPos = yPos + 40
-        
-        local trapToggle = createToggle("Trap", ObjectESP.Trap, function(value)
-            ObjectESP.Trap = value
-            _G.Settings.ObjectESP_Trap = value
-        end)
-        trapToggle.Position = UDim2.new(0, 10, 0, yPos)
-        yPos = yPos + 40
-        
-        local totemToggle = createToggle("Totem", ObjectESP.Totem, function(value)
-            ObjectESP.Totem = value
-            _G.Settings.ObjectESP_Totem = value
-        end)
-        totemToggle.Position = UDim2.new(0, 10, 0, yPos)
-        yPos = yPos + 40
-        
-        local chestToggle = createToggle("Chest", ObjectESP.Chest, function(value)
-            ObjectESP.Chest = value
-            _G.Settings.ObjectESP_Chest = value
-        end)
-        chestToggle.Position = UDim2.new(0, 10, 0, yPos)
-        yPos = yPos + 40
-        
-        -- RGB секция
-        local rgbCategory = createCategory("ESP Color Settings")
-        rgbCategory.Position = UDim2.new(0, 10, 0, yPos)
-        yPos = yPos + 45
-        
-        -- Killer RGB
-        local killerRGB = createRGBSliders("KILLER", 
-            _G.Settings.ESP_KillerColor_R,
-            _G.Settings.ESP_KillerColor_G,
-            _G.Settings.ESP_KillerColor_B,
-            function(r, g, b)
-                _G.Settings.ESP_KillerColor_R = r
-                _G.Settings.ESP_KillerColor_G = g
-                _G.Settings.ESP_KillerColor_B = b
-                ESP.BoxColor = Color3.fromRGB(r, g, b)
-            end)
-        killerRGB.Position = UDim2.new(0, 10, 0, yPos)
-        yPos = yPos + 130
-        
-        -- Survivor RGB
-        local survivorRGB = createRGBSliders("SURVIVOR", 
-            _G.Settings.ESP_SurvivorColor_R,
-            _G.Settings.ESP_SurvivorColor_G,
-            _G.Settings.ESP_SurvivorColor_B,
-            function(r, g, b)
-                _G.Settings.ESP_SurvivorColor_R = r
-                _G.Settings.ESP_SurvivorColor_G = g
-                _G.Settings.ESP_SurvivorColor_B = b
-                ESP.TeamColor = Color3.fromRGB(r, g, b)
-            end)
-        survivorRGB.Position = UDim2.new(0, 10, 0, yPos)
-        yPos = yPos + 130
-        
-        -- Object RGB
-        local objectRGB = createRGBSliders("OBJECT", 
-            _G.Settings.ESP_ObjectColor_R,
-            _G.Settings.ESP_ObjectColor_G,
-            _G.Settings.ESP_ObjectColor_B,
-            function(r, g, b)
-                _G.Settings.ESP_ObjectColor_R = r
-                _G.Settings.ESP_ObjectColor_G = g
-                _G.Settings.ESP_ObjectColor_B = b
-                local objColor = Color3.fromRGB(r, g, b)
-                ObjectESP.Colors.Hatch = objColor
-                ObjectESP.Colors.ExitGate = objColor
-                ObjectESP.Colors.Generator = objColor
-                ObjectESP.Colors.Window = objColor
-                ObjectESP.Colors.Hook = objColor
-                ObjectESP.Colors.Pallet = objColor
-                ObjectESP.Colors.Trap = objColor
-                ObjectESP.Colors.Totem = objColor
-                ObjectESP.Colors.Chest = objColor
-            end)
-        objectRGB.Position = UDim2.new(0, 10, 0, yPos)
-        yPos = yPos + 130
-        
-        Content.CanvasSize = UDim2.new(0, 0, 0, yPos + 20)
-        
-    elseif currentTab == "SpeedHack" then
-        local speedCategory = createCategory("Speed Hack")
-        speedCategory.Position = UDim2.new(0, 10, 0, yPos)
-        yPos = yPos + 45
-        
-        local speedToggle = createToggle("Enable Speed Hack", SpeedHack.Enabled, function(value)
-            SpeedHack.Enabled = value
-            _G.Settings.SpeedHack_Enabled = value
-            if not value then
-                SpeedHack.Active = false
-                if SpeedHack.Connection then
-                    SpeedHack.Connection:Disconnect()
-                    SpeedHack.Connection = nil
-                end
-            end
-            updateSpeedHack()
-        end)
-        speedToggle.Position = UDim2.new(0, 10, 0, yPos)
-        yPos = yPos + 40
-        
-        local speedModeDropdown = createDropdown("Speed Mode", {"Always On", "Hold", "Toggle"}, SpeedHack.Mode, function(value)
-            SpeedHack.Mode = value
-            _G.Settings.SpeedHack_Mode = value
-            updateSpeedHack()
-        end)
-        speedModeDropdown.Position = UDim2.new(0, 10, 0, yPos)
-        yPos = yPos + 40
-        
-        local speedSlider = createSlider("Speed", 1, 20, SpeedHack.Speed, 0.1, function(value)
-            SpeedHack.Speed = value
-            _G.Settings.SpeedHack_Speed = value
-            updateSpeedHack()
-        end)
-        speedSlider.Position = UDim2.new(0, 10, 0, yPos)
-        yPos = yPos + 55
-        
-        local defaultSpeedCategory = createCategory("Default Speed")
-        defaultSpeedCategory.Position = UDim2.new(0, 10, 0, yPos)
-        yPos = yPos + 45
-        
-        local defaultSpeedToggle = createToggle("Enable Default Speed", DefaultSpeed.Enabled, function(value)
-            DefaultSpeed.Enabled = value
-            _G.Settings.DefaultSpeed_Enabled = value
-            updateDefaultSpeed()
-        end)
-        defaultSpeedToggle.Position = UDim2.new(0, 10, 0, yPos)
-        yPos = yPos + 40
-        
-        local defaultSpeedSlider = createSlider("Default Speed", 5, 30, DefaultSpeed.Value, 1, function(value)
-            DefaultSpeed.Value = value
-            _G.Settings.DefaultSpeed_Value = value
-            updateDefaultSpeed()
-        end)
-        defaultSpeedSlider.Position = UDim2.new(0, 10, 0, yPos)
-        yPos = yPos + 55
-        
-        local windowVaultCategory = createCategory("Window Vault Speed")
-        windowVaultCategory.Position = UDim2.new(0, 10, 0, yPos)
-        yPos = yPos + 45
-        
-        local windowVaultToggle = createToggle("Enable Window Vault Speed", WindowVaultSpeed.Enabled, function(value)
-            WindowVaultSpeed.Enabled = value
-            _G.Settings.WindowVaultSpeed_Enabled = value
-            updateWindowVaultSpeed()
-        end)
-        windowVaultToggle.Position = UDim2.new(0, 10, 0, yPos)
-        yPos = yPos + 40
-        
-        local windowVaultSlider = createSlider("Vault Speed", 0.1, 5.0, WindowVaultSpeed.Value, 0.1, function(value)
-            WindowVaultSpeed.Value = value
-            _G.Settings.WindowVaultSpeed_Value = value
-            updateWindowVaultSpeed()
-        end)
-        windowVaultSlider.Position = UDim2.new(0, 10, 0, yPos)
-        yPos = yPos + 55
-        
-        local dashCategory = createCategory("Dash")
-        dashCategory.Position = UDim2.new(0, 10, 0, yPos)
-        yPos = yPos + 45
-        
-        local dashToggle = createToggle("Enable Dash", Dash.Enabled, function(value)
-            Dash.Enabled = value
-            _G.Settings.Dash_Enabled = value
-        end)
-        dashToggle.Position = UDim2.new(0, 10, 0, yPos)
-        yPos = yPos + 40
-        
-        local dashDistanceSlider = createSlider("Dash Distance", 5, 30, Dash.Distance, 1, function(value)
-            Dash.Distance = value
-            _G.Settings.Dash_Distance = value
-        end)
-        dashDistanceSlider.Position = UDim2.new(0, 10, 0, yPos)
-        yPos = yPos + 55
-        
-        Content.CanvasSize = UDim2.new(0, 0, 0, yPos + 20)
-        
-    elseif currentTab == "Functions" then
-        -- General Section
-        local generalCategory = createCategory("General")
-        generalCategory.Position = UDim2.new(0, 10, 0, yPos)
-        yPos = yPos + 45
-        
-        local noFallStunToggle = createToggle("No Fall Stun", NoFallStun.Enabled, function(value)
-            NoFallStun.Enabled = value
-            _G.Settings.NoFallStun_Enabled = value
-            updateNoFallStun()
-        end)
-        noFallStunToggle.Position = UDim2.new(0, 10, 0, yPos)
-        yPos = yPos + 40
-        
-        local noCollisionToggle = createToggle("No Collision", NoCollision.Enabled, function(value)
-            NoCollision.Enabled = value
-            _G.Settings.NoCollision_Enabled = value
-            updateNoCollision()
-        end)
-        noCollisionToggle.Position = UDim2.new(0, 10, 0, yPos)
-        yPos = yPos + 40
-        
-        if CurrentRole == "Survivor" then
-            local bugPalletToggle = createToggle("Bug Pallet", BugPallet.Enabled, function(value)
-                BugPallet.Enabled = value
-                _G.Settings.BugPallet_Enabled = value
-                updateBugPallet()
-            end)
-            bugPalletToggle.Position = UDim2.new(0, 10, 0, yPos)
-            yPos = yPos + 40
-        end
-        
-        -- Health Section
-        local healthCategory = createCategory("Health")
-        healthCategory.Position = UDim2.new(0, 10, 0, yPos)
-        yPos = yPos + 45
-        
-        if CurrentRole == "Survivor" then
-            local selfHealToggle = createToggle("Enable Self-Heal", SelfHeal.Enabled, function(value)
-                SelfHeal.Enabled = value
-                _G.Settings.SelfHeal_Enabled = value
-                if not value and SelfHeal.Active then
-                    stopHealing()
-                end
-                updateSelfHeal()
-            end)
-            selfHealToggle.Position = UDim2.new(0, 10, 0, yPos)
-            yPos = yPos + 40
+    if GameMode == "LOBBY" then
+        -- LOBBY MODE - только Functions и Config
+        if currentTab == "Functions" then
+            local functionsCategory = createCategory("LOBBY FUNCTIONS")
+            functionsCategory.Position = UDim2.new(0, 10, 0, yPos)
+            yPos = yPos + 45
             
-            local healthStateToggle = createToggle("Enable Health State Change", HealthStateChange.Enabled, function(value)
-                HealthStateChange.Enabled = value
-                _G.Settings.HealthStateChange_Enabled = value
-                updateHealthStateChange()
+            -- Фиолетовая кнопка Reward
+            local rewardButton = createButton("🎁 REWARD TELEPORT", Color3.fromRGB(160, 80, 255), function()
+                teleportToReward()
             end)
-            healthStateToggle.Position = UDim2.new(0, 10, 0, yPos)
-            yPos = yPos + 40
-        end
-        
-        -- Instant Section
-        local instantCategory = createCategory("Instant")
-        instantCategory.Position = UDim2.new(0, 10, 0, yPos)
-        yPos = yPos + 45
-        
-        local instaHitToggle = createToggle("Insta Hit", SelectSystem.InstaHit.Enabled, function(value)
-            SelectSystem.InstaHit.Enabled = value
-            _G.Settings.InstaHit_Enabled = value
-        end)
-        instaHitToggle.Position = UDim2.new(0, 10, 0, yPos)
-        yPos = yPos + 40
-        
-        if CurrentRole == "Survivor" then
-            local instaRescueToggle = createToggle("Insta Rescue", SelectSystem.InstaRescue.Enabled, function(value)
-                SelectSystem.InstaRescue.Enabled = value
-                _G.Settings.InstaRescue_Enabled = value
-            end)
-            instaRescueToggle.Position = UDim2.new(0, 10, 0, yPos)
-            yPos = yPos + 40
-        end
-        
-        if CurrentRole == "Killer" then
-            local instaHookToggle = createToggle("Insta Hook", SelectSystem.InstaHook.Enabled, function(value)
-                SelectSystem.InstaHook.Enabled = value
-                _G.Settings.InstaHook_Enabled = value
-            end)
-            instaHookToggle.Position = UDim2.new(0, 10, 0, yPos)
-            yPos = yPos + 40
-        end
-        
-        -- Reward Section (для всех режимов)
-        local rewardCategory = createCategory("Reward")
-        rewardCategory.Position = UDim2.new(0, 10, 0, yPos)
-        yPos = yPos + 45
-        
-        local rewardButton = createButton("🎁 REWARD TELEPORT", Color3.fromRGB(255, 215, 0), function()
-            teleportToReward()
-        end)
-        rewardButton.Position = UDim2.new(0, 10, 0, yPos)
-        yPos = yPos + 50
-        
-        -- Old Anims только для лобби
-        if GameMode == "LOBBY" then
+            rewardButton.Position = UDim2.new(0, 10, 0, yPos)
+            yPos = yPos + 50
+            
+            -- Переключатель Old Anims
             local oldAnimsToggle = createToggle("Enable Old Anims", _G.Settings.OldAnims_Enabled, function(value)
                 _G.Settings.OldAnims_Enabled = value
                 game:GetService("StarterGui"):SetCore("SendNotification", {
@@ -6337,588 +5977,1020 @@ local function updateTabs()
             end)
             oldAnimsToggle.Position = UDim2.new(0, 10, 0, yPos)
             yPos = yPos + 40
-        end
-        
-        -- Killer Section
-        if CurrentRole == "Killer" then
-            local killerCategory = createCategory("Killer")
-            killerCategory.Position = UDim2.new(0, 10, 0, yPos)
+            
+            Content.CanvasSize = UDim2.new(0, 0, 0, yPos + 20)
+            
+        elseif currentTab == "Config" then
+            local configCategory = createCategory("Config Management")
+            configCategory.Position = UDim2.new(0, 10, 0, yPos)
             yPos = yPos + 45
             
-            local infiniteBlinksToggle = createToggle("Infinite Blinks", InfiniteBlinks.Enabled, function(value)
-                InfiniteBlinks.Enabled = value
-                _G.Settings.InfiniteBlinks_Enabled = value
-                updateInfiniteBlinks()
+            local saveButton = createButton("💾 SAVE CONFIG", Color3.fromRGB(110, 85, 210), function()
+                _G.SaveConfig()
             end)
-            infiniteBlinksToggle.Position = UDim2.new(0, 10, 0, yPos)
-            yPos = yPos + 40
+            saveButton.Position = UDim2.new(0, 10, 0, yPos)
+            yPos = yPos + 50
             
-            local lungeBoostToggle = createToggle("Lunge Boost", LungeBoost.Enabled, function(value)
-                LungeBoost.Enabled = value
-                _G.Settings.LungeBoost_Enabled = value
-                updateLungeBoost()
+            local resetButton = createButton("🔄 RESET CONFIG", Color3.fromRGB(110, 85, 210), function()
+                _G.ResetConfig()
+                
+                game:GetService("StarterGui"):SetCore("SendNotification", {
+                    Title = "Config",
+                    Text = "Reset Complete!",
+                    Duration = 2
+                })
             end)
-            lungeBoostToggle.Position = UDim2.new(0, 10, 0, yPos)
-            yPos = yPos + 40
+            resetButton.Position = UDim2.new(0, 10, 0, yPos)
+            yPos = yPos + 50
             
-            local infiniteLungeToggle = createToggle("Infinite Lunge", InfiniteLungeDuration.Enabled, function(value)
-                InfiniteLungeDuration.Enabled = value
-                _G.Settings.InfiniteLunge_Enabled = value
-                updateInfiniteLungeDuration()
-            end)
-            infiniteLungeToggle.Position = UDim2.new(0, 10, 0, yPos)
-            yPos = yPos + 40
+            local infoText = Instance.new("TextLabel")
+            infoText.Size = UDim2.new(1, -20, 0, 40)
+            infoText.Position = UDim2.new(0, 10, 0, yPos)
+            infoText.BackgroundTransparency = 1
+            infoText.Text = "Config for LOBBY mode\nClick SAVE to save current settings\nClick RESET to restore defaults"
+            infoText.TextColor3 = Color3.fromRGB(160, 140, 210)
+            infoText.TextSize = 12
+            infoText.Font = Enum.Font.Gotham
+            infoText.TextWrapped = true
+            infoText.TextXAlignment = Enum.TextXAlignment.Center
+            infoText.Parent = Content
+            yPos = yPos + 50
             
-            local noStunToggle = createToggle("No Stun Before Miss", NoStunBeforeMiss.Enabled, function(value)
-                NoStunBeforeMiss.Enabled = value
-                _G.Settings.NoStunBeforeMiss_Enabled = value
-                updateNoStunBeforeMiss()
-            end)
-            noStunToggle.Position = UDim2.new(0, 10, 0, yPos)
-            yPos = yPos + 40
-            
-            local magnetAimToggle = createToggle("Magnet Aim (Q)", MagnetAim.Enabled, function(value)
-                MagnetAim.Enabled = value
-                _G.Settings.MagnetAim_Enabled = value
-            end)
-            magnetAimToggle.Position = UDim2.new(0, 10, 0, yPos)
-            yPos = yPos + 40
+            Content.CanvasSize = UDim2.new(0, 0, 0, yPos + 20)
         end
         
-        -- Flight & Jump
-        local flyJumpCategory = createCategory("Flight & Jump")
-        flyJumpCategory.Position = UDim2.new(0, 10, 0, yPos)
-        yPos = yPos + 45
-        
-        local jumpToggle = createToggle("Enable Jump", Jump.Enabled, function(value)
-            Jump.Enabled = value
-            _G.Settings.Jump_Enabled = value
-        end)
-        jumpToggle.Position = UDim2.new(0, 10, 0, yPos)
-        yPos = yPos + 40
-        
-        local jumpPowerSlider = createSlider("Jump Power", 20, 100, Jump.Power, 1, function(value)
-            Jump.Power = value
-            _G.Settings.Jump_Power = value
-        end)
-        jumpPowerSlider.Position = UDim2.new(0, 10, 0, yPos)
-        yPos = yPos + 55
-        
-        local flyToggle = createToggle("Enable Fly (V)", Fly.Enabled, function(value)
-            Fly.Enabled = value
-            _G.Settings.Fly_Enabled = value
-            if not value and Fly.Active then
-                toggleFly()
-            end
-        end)
-        flyToggle.Position = UDim2.new(0, 10, 0, yPos)
-        yPos = yPos + 40
-        
-        local flySpeedSlider = createSlider("Fly Speed", 10, 150, Fly.Speed, 1, function(value)
-            Fly.Speed = value
-            _G.Settings.Fly_Speed = value
-        end)
-        flySpeedSlider.Position = UDim2.new(0, 10, 0, yPos)
-        yPos = yPos + 55
-        
-        Content.CanvasSize = UDim2.new(0, 0, 0, yPos + 20)
-        
-    elseif currentTab == "Auto" then
-        local autoCategory = createCategory("Auto SkillCheck")
-        autoCategory.Position = UDim2.new(0, 10, 0, yPos)
-        yPos = yPos + 45
-        
-        local autoSkillCheckToggle = createToggle("Enable Auto SkillCheck", AutoSkillCheck.Enabled, function(value)
-            AutoSkillCheck.Enabled = value
-            _G.Settings.AutoSkillCheck_Enabled = value
-            updateAutoSkillCheck()
-        end)
-        autoSkillCheckToggle.Position = UDim2.new(0, 10, 0, yPos)
-        yPos = yPos + 40
-        
-        if CurrentRole == "Survivor" then
-            local moonwalkCategory = createCategory("Auto Moonwalk")
-            moonwalkCategory.Position = UDim2.new(0, 10, 0, yPos)
+    elseif GameMode == "GAME" then
+        -- GAME MODE - все функции (кроме reward и old anims)
+        if currentTab == "Visuals" then
+            local espCategory = createCategory("Player ESP")
+            espCategory.Position = UDim2.new(0, 10, 0, yPos)
             yPos = yPos + 45
             
-            local moonwalkToggle = createToggle("Enable Auto Moonwalk", Moonwalk.Enabled, function(value)
-                Moonwalk.Enabled = value
-                _G.Settings.Moonwalk_Enabled = value
-                if not value and Moonwalk.Active then
-                    ToggleMoonwalk()
+            local espToggle = createToggle("Enable Player ESP", ESP.Enabled, function(value)
+                ESP.Enabled = value
+                _G.Settings.ESP_Enabled = value
+            end)
+            espToggle.Position = UDim2.new(0, 10, 0, yPos)
+            yPos = yPos + 40
+            
+            local espNamesToggle = createToggle("ESP Names", ESP.Names, function(value)
+                ESP.Names = value
+                _G.Settings.ESP_Names = value
+            end)
+            espNamesToggle.Position = UDim2.new(0, 10, 0, yPos)
+            yPos = yPos + 40
+            
+            local espHighlightsToggle = createToggle("Highlights", ESP.Highlights, function(value)
+                ESP.Highlights = value
+                _G.Settings.ESP_Highlights = value
+            end)
+            espHighlightsToggle.Position = UDim2.new(0, 10, 0, yPos)
+            yPos = yPos + 40
+            
+            local espHealthToggle = createToggle("Health ESP", ESP.Health, function(value)
+                ESP.Health = value
+                _G.Settings.ESP_Health = value
+            end)
+            espHealthToggle.Position = UDim2.new(0, 10, 0, yPos)
+            yPos = yPos + 40
+            
+            local espSkeletonsToggle = createToggle("Skeleton ESP", ESP.Skeletons, function(value)
+                ESP.Skeletons = value
+                _G.Settings.ESP_Skeletons = value
+            end)
+            espSkeletonsToggle.Position = UDim2.new(0, 10, 0, yPos)
+            yPos = yPos + 40
+            
+            local espTeamCheckToggle = createToggle("Team Check", ESP.TeamCheck, function(value)
+                ESP.TeamCheck = value
+                _G.Settings.ESP_TeamCheck = value
+            end)
+            espTeamCheckToggle.Position = UDim2.new(0, 10, 0, yPos)
+            yPos = yPos + 40
+            
+            local espMaxDistanceSlider = createSlider("Max Distance", 50, 2000, ESP.MaxDistance, 10, function(value)
+                ESP.MaxDistance = value
+                _G.Settings.ESP_MaxDistance = value
+            end)
+            espMaxDistanceSlider.Position = UDim2.new(0, 10, 0, yPos)
+            yPos = yPos + 55
+            
+            local objectESPCategory = createCategory("Object ESP")
+            objectESPCategory.Position = UDim2.new(0, 10, 0, yPos)
+            yPos = yPos + 45
+            
+            local objectESPToggle = createToggle("Enable Object ESP", ObjectESP.Enabled, function(value)
+                ObjectESP.Enabled = value
+                _G.Settings.ObjectESP_Enabled = value
+                if not value then
+                    for objectType, _ in pairs(objectESPData) do
+                        disableObjectESP(objectType)
+                    end
                 end
             end)
-            moonwalkToggle.Position = UDim2.new(0, 10, 0, yPos)
+            objectESPToggle.Position = UDim2.new(0, 10, 0, yPos)
             yPos = yPos + 40
             
-            local moonwalkTypeDropdown = createDropdown("Moonwalk Type", {"Backward", "Forward", "Left Side", "Right Side"}, Moonwalk.MoonwalkType, function(value)
-                Moonwalk.MoonwalkType = value
-                _G.Settings.Moonwalk_Type = value
+            local objectDistanceSlider = createSlider("Max Distance", 50, 500, ObjectESP.MaxDistance, 10, function(value)
+                ObjectESP.MaxDistance = value
+                _G.Settings.ObjectESP_MaxDistance = value
             end)
-            moonwalkTypeDropdown.Position = UDim2.new(0, 10, 0, yPos)
-            yPos = yPos + 40
-        end
-        
-        Content.CanvasSize = UDim2.new(0, 0, 0, yPos + 20)
-        
-    elseif currentTab == "Keybinds" then
-        local keybindsCategory = createCategory("Keybinds")
-        keybindsCategory.Position = UDim2.new(0, 10, 0, yPos)
-        yPos = yPos + 45
-        
-        local generalCategory = createCategory("General")
-        generalCategory.Position = UDim2.new(0, 10, 0, yPos)
-        yPos = yPos + 30
-        
-        local menuKeybindInsert = createKeybindButton("Menu Key Insert", "Insert", function(key)
-            MENU_KEY_INSERT = Enum.KeyCode[key]
-            _G.Settings.MenuKey = key
-        end, true)
-        menuKeybindInsert.Position = UDim2.new(0, 10, 0, yPos)
-        yPos = yPos + 40
-        
-        local menuKeybindDelete = createKeybindButton("Menu Key Delete", "Delete", function(key)
-            MENU_KEY_DELETE = Enum.KeyCode[key]
-        end, true)
-        menuKeybindDelete.Position = UDim2.new(0, 10, 0, yPos)
-        yPos = yPos + 40
-        
-        local selectCategory = createCategory("Select System")
-        selectCategory.Position = UDim2.new(0, 10, 0, yPos)
-        yPos = yPos + 30
-        
-        local selectKeybind = createKeybindButton("Select Target", SelectSystem.SelectKey, function(key)
-            SelectSystem.SelectKey = key
-            _G.Settings.SelectSystem_SelectKey = key
-            updateSelectSystem()
-        end, false)
-        selectKeybind.Position = UDim2.new(0, 10, 0, yPos)
-        yPos = yPos + 40
-        
-        local instaHitKeybind = createKeybindButton("Insta Hit Key", SelectSystem.InstaHit.Key, function(key)
-            SelectSystem.InstaHit.Key = key
-            _G.Settings.InstaHit_Key = key
-            updateSelectSystem()
-        end, false)
-        instaHitKeybind.Position = UDim2.new(0, 10, 0, yPos)
-        yPos = yPos + 40
-        
-        if CurrentRole == "Survivor" then
-            local instaRescueKeybind = createKeybindButton("Insta Rescue Key", SelectSystem.InstaRescue.Key, function(key)
-                SelectSystem.InstaRescue.Key = key
-                _G.Settings.InstaRescue_Key = key
-                updateSelectSystem()
-            end, false)
-            instaRescueKeybind.Position = UDim2.new(0, 10, 0, yPos)
-            yPos = yPos + 40
-        end
-        
-        if CurrentRole == "Killer" then
-            local instaHookKeybind = createKeybindButton("Insta Hook Key", SelectSystem.InstaHook.Key, function(key)
-                SelectSystem.InstaHook.Key = key
-                _G.Settings.InstaHook_Key = key
-                updateSelectSystem()
-            end, false)
-            instaHookKeybind.Position = UDim2.new(0, 10, 0, yPos)
-            yPos = yPos + 40
-        end
-        
-        local speedCategory = createCategory("SpeedHack")
-        speedCategory.Position = UDim2.new(0, 10, 0, yPos)
-        yPos = yPos + 30
-        
-        local speedKeybind = createKeybindButton("Speed Hack Key", SpeedHack.Key, function(key)
-            SpeedHack.Key = key
-            _G.Settings.SpeedHack_Key = key
-        end, false)
-        speedKeybind.Position = UDim2.new(0, 10, 0, yPos)
-        yPos = yPos + 40
-        
-        local dashKeybind = createKeybindButton("Dash Key", Dash.Key, function(key)
-            Dash.Key = key
-            _G.Settings.Dash_Key = key
-        end, false)
-        dashKeybind.Position = UDim2.new(0, 10, 0, yPos)
-        yPos = yPos + 40
-        
-        local functionsCategory = createCategory("Functions")
-        functionsCategory.Position = UDim2.new(0, 10, 0, yPos)
-        yPos = yPos + 30
-        
-        local flyKeybind = createKeybindButton("Fly Key", Fly.Key, function(key)
-            Fly.Key = key
-            _G.Settings.Fly_Key = key
-        end, false)
-        flyKeybind.Position = UDim2.new(0, 10, 0, yPos)
-        yPos = yPos + 40
-        
-        local jumpKeybind = createKeybindButton("Jump Key", Jump.Key, function(key)
-            Jump.Key = key
-            _G.Settings.Jump_Key = key
-        end, false)
-        jumpKeybind.Position = UDim2.new(0, 10, 0, yPos)
-        yPos = yPos + 40
-        
-        if CurrentRole == "Survivor" then
-            local moonwalkKeybind = createKeybindButton("Moonwalk Key", Moonwalk.Key, function(key)
-                Moonwalk.Key = key
-                _G.Settings.Moonwalk_Key = key
-            end, false)
-            moonwalkKeybind.Position = UDim2.new(0, 10, 0, yPos)
+            objectDistanceSlider.Position = UDim2.new(0, 10, 0, yPos)
+            yPos = yPos + 55
+            
+            local showDistanceToggle = createToggle("Show Distance", ObjectESP.ShowDistance, function(value)
+                ObjectESP.ShowDistance = value
+                _G.Settings.ObjectESP_ShowDistance = value
+            end)
+            showDistanceToggle.Position = UDim2.new(0, 10, 0, yPos)
             yPos = yPos + 40
             
-            local bugPalletKeybind = createKeybindButton("Bug Pallet Key", BugPallet.Key, function(key)
-                BugPallet.Key = key
-                _G.Settings.BugPallet_Key = key
-            end, false)
-            bugPalletKeybind.Position = UDim2.new(0, 10, 0, yPos)
+            local hatchToggle = createToggle("Hatch", ObjectESP.Hatch, function(value)
+                ObjectESP.Hatch = value
+                _G.Settings.ObjectESP_Hatch = value
+            end)
+            hatchToggle.Position = UDim2.new(0, 10, 0, yPos)
             yPos = yPos + 40
             
-            local selfHealKeybind = createKeybindButton("Self-Heal Key", SelfHeal.Key, function(key)
-                SelfHeal.Key = key
-                _G.Settings.SelfHeal_Key = key
-            end, false)
-            selfHealKeybind.Position = UDim2.new(0, 10, 0, yPos)
+            local exitGateToggle = createToggle("Exit Gate", ObjectESP.ExitGate, function(value)
+                ObjectESP.ExitGate = value
+                _G.Settings.ObjectESP_ExitGate = value
+            end)
+            exitGateToggle.Position = UDim2.new(0, 10, 0, yPos)
             yPos = yPos + 40
             
-            local healthStateKeybind = createKeybindButton("Health State Key", HealthStateChange.Key, function(key)
-                HealthStateChange.Key = key
-                _G.Settings.HealthStateChange_Key = key
-            end, false)
-            healthStateKeybind.Position = UDim2.new(0, 10, 0, yPos)
+            local generatorToggle = createToggle("Generator", ObjectESP.Generator, function(value)
+                ObjectESP.Generator = value
+                _G.Settings.ObjectESP_Generator = value
+            end)
+            generatorToggle.Position = UDim2.new(0, 10, 0, yPos)
             yPos = yPos + 40
-        end
-        
-        if CurrentRole == "Killer" then
-            local magnetKeybind = createKeybindButton("Magnet Aim Key", MagnetAim.Key, function(key)
-                MagnetAim.Key = key
-                _G.Settings.MagnetAim_Key = key
-            end, false)
-            magnetKeybind.Position = UDim2.new(0, 10, 0, yPos)
-            yPos = yPos + 40
-        end
-        
-        local noCollisionKeybind = createKeybindButton("No Collision Key", NoCollision.Key, function(key)
-            NoCollision.Key = key
-            _G.Settings.NoCollision_Key = key
-        end, false)
-        noCollisionKeybind.Position = UDim2.new(0, 10, 0, yPos)
-        yPos = yPos + 40
-        
-        local emoteKeybindsCategory = createCategory("Emote System (3 Pages)")
-        emoteKeybindsCategory.Position = UDim2.new(0, 10, 0, yPos)
-        yPos = yPos + 30
-        
-        local emoteWheelKeybind = createKeybindButton("Emote Wheel Key", EmoteSystem.WheelKey, function(key)
-            EmoteSystem.WheelKey = key
-            _G.Settings.EmoteSystem_WheelKey = key
-            updateEmoteSystem()
-        end, false)
-        emoteWheelKeybind.Position = UDim2.new(0, 10, 0, yPos)
-        yPos = yPos + 40
-        
-        local nextPageKeybind = createKeybindButton("Next Page Key (Up)", EmoteSystem.NextPageKey, function(key)
-            EmoteSystem.NextPageKey = key
-            _G.Settings.EmoteSystem_NextPageKey = key
-            updateEmoteSystem()
-        end, false)
-        nextPageKeybind.Position = UDim2.new(0, 10, 0, yPos)
-        yPos = yPos + 40
-        
-        local prevPageKeybind = createKeybindButton("Prev Page Key (Down)", EmoteSystem.PrevPageKey, function(key)
-            EmoteSystem.PrevPageKey = key
-            _G.Settings.EmoteSystem_PrevPageKey = key
-            updateEmoteSystem()
-        end, false)
-        prevPageKeybind.Position = UDim2.new(0, 10, 0, yPos)
-        yPos = yPos + 40
-        
-        Content.CanvasSize = UDim2.new(0, 0, 0, yPos + 20)
-        
-    elseif currentTab == "MISC" then
-        local blindProgressCategory = createCategory("Blind Progress")
-        blindProgressCategory.Position = UDim2.new(0, 10, 0, yPos)
-        yPos = yPos + 45
-        
-        local blindProgressToggle = createToggle("Enable Blind Progress", Misc.BlindProgress.Enabled, function(value)
-            Misc.BlindProgress.Enabled = value
-            _G.Settings.BlindProgress_Enabled = value
-            updateBlindProgress()
-        end)
-        blindProgressToggle.Position = UDim2.new(0, 10, 0, yPos)
-        yPos = yPos + 40
-        
-        local fullbrightCategory = createCategory("Fullbright")
-        fullbrightCategory.Position = UDim2.new(0, 10, 0, yPos)
-        yPos = yPos + 45
-        
-        local fullbrightToggle = createToggle("Enable Fullbright", Misc.Fullbright.Enabled, function(value)
-            Misc.Fullbright.Enabled = value
-            _G.Settings.Fullbright_Enabled = value
-            updateFullbright()
-        end)
-        fullbrightToggle.Position = UDim2.new(0, 10, 0, yPos)
-        yPos = yPos + 40
-        
-        local miniHudCategory = createCategory("Mini HUD")
-        miniHudCategory.Position = UDim2.new(0, 10, 0, yPos)
-        yPos = yPos + 45
-        
-        local miniHudToggle = createToggle("Enable Mini HUD", MiniHUD.Enabled, function(value)
-            MiniHUD.Enabled = value
-            _G.Settings.MiniHUD_Enabled = value
-            updateMiniHUDVisibility()
-        end)
-        miniHudToggle.Position = UDim2.new(0, 10, 0, yPos)
-        yPos = yPos + 40
-        
-        local fovCategory = createCategory("FOV Changer")
-        fovCategory.Position = UDim2.new(0, 10, 0, yPos)
-        yPos = yPos + 45
-        
-        local fovToggle = createToggle("Enable FOV Changer", FOVChanger.Enabled, function(value)
-            FOVChanger.Enabled = value
-            _G.Settings.FOVChanger_Enabled = value
-            updateFOV()
-        end)
-        fovToggle.Position = UDim2.new(0, 10, 0, yPos)
-        yPos = yPos + 40
-        
-        local fovSlider = createSlider("FOV Value", FOVChanger.MinValue, FOVChanger.MaxValue, FOVChanger.Value, FOVChanger.Step, function(value)
-            FOVChanger.Value = value
-            _G.Settings.FOVChanger_Value = value
-            updateFOV()
-        end)
-        fovSlider.Position = UDim2.new(0, 10, 0, yPos)
-        yPos = yPos + 55
-        
-        local drawFovCategory = createCategory("Draw FOV")
-        drawFovCategory.Position = UDim2.new(0, 10, 0, yPos)
-        yPos = yPos + 45
-        
-        local drawFovToggle = createToggle("Enable Draw FOV", DrawFOV.Enabled, function(value)
-            DrawFOV.Enabled = value
-            _G.Settings.DrawFOV_Enabled = value
-            updateDrawFOV()
-        end)
-        drawFovToggle.Position = UDim2.new(0, 10, 0, yPos)
-        yPos = yPos + 40
-        
-        local fovRadiusSlider = createSlider("FOV Radius", 50, 300, DrawFOV.Radius, 5, function(value)
-            DrawFOV.Radius = value
-            _G.Settings.DrawFOV_Radius = value
-            updateDrawFOV()
-        end)
-        fovRadiusSlider.Position = UDim2.new(0, 10, 0, yPos)
-        yPos = yPos + 55
-        
-        local resCategory = createCategory("Resolution Modifier")
-        resCategory.Position = UDim2.new(0, 10, 0, yPos)
-        yPos = yPos + 45
-        
-        local resToggle = createToggle("Enable Resolution Mod", Misc.ResolutionModifier.Enabled, function(value)
-            Misc.ResolutionModifier.Enabled = value
-            _G.Settings.ResolutionModifier_Enabled = value
-            updateResolutionModifier()
-        end)
-        resToggle.Position = UDim2.new(0, 10, 0, yPos)
-        yPos = yPos + 40
-        
-        local resSlider = createSlider("Resolution Value", 0.1, 1.2, Misc.ResolutionModifier.Value, 0.05, function(value)
-            Misc.ResolutionModifier.Value = value
-            _G.Settings.ResolutionModifier_Value = value
-            updateResolutionModifier()
-        end)
-        resSlider.Position = UDim2.new(0, 10, 0, yPos)
-        yPos = yPos + 55
-        
-        Content.CanvasSize = UDim2.new(0, 0, 0, yPos + 20)
-        
-    elseif currentTab == "Config" then
-        local configCategory = createCategory("Config Management")
-        configCategory.Position = UDim2.new(0, 10, 0, yPos)
-        yPos = yPos + 45
-        
-        local saveButton = createButton("💾 SAVE CONFIG", Color3.fromRGB(110, 85, 210), function()
-            _G.SaveConfig()
-        end)
-        saveButton.Position = UDim2.new(0, 10, 0, yPos)
-        yPos = yPos + 50
-        
-        local resetButton = createButton("🔄 RESET CONFIG", Color3.fromRGB(110, 85, 210), function()
-            _G.ResetConfig()
             
-            -- Обновляем все значения в скрипте после сброса
-            ESP.Enabled = _G.Settings.ESP_Enabled
-            ESP.Names = _G.Settings.ESP_Names
-            ESP.Health = _G.Settings.ESP_Health
-            ESP.Highlights = _G.Settings.ESP_Highlights
-            ESP.Skeletons = _G.Settings.ESP_Skeletons
-            ESP.TeamCheck = _G.Settings.ESP_TeamCheck
-            ESP.MaxDistance = _G.Settings.ESP_MaxDistance
-            ESP.BoxColor = Color3.fromRGB(
+            local windowToggle = createToggle("Window", ObjectESP.Window, function(value)
+                ObjectESP.Window = value
+                _G.Settings.ObjectESP_Window = value
+            end)
+            windowToggle.Position = UDim2.new(0, 10, 0, yPos)
+            yPos = yPos + 40
+            
+            local hookToggle = createToggle("Hook", ObjectESP.Hook, function(value)
+                ObjectESP.Hook = value
+                _G.Settings.ObjectESP_Hook = value
+            end)
+            hookToggle.Position = UDim2.new(0, 10, 0, yPos)
+            yPos = yPos + 40
+            
+            local palletToggle = createToggle("Pallet", ObjectESP.Pallet, function(value)
+                ObjectESP.Pallet = value
+                _G.Settings.ObjectESP_Pallet = value
+            end)
+            palletToggle.Position = UDim2.new(0, 10, 0, yPos)
+            yPos = yPos + 40
+            
+            local trapToggle = createToggle("Trap", ObjectESP.Trap, function(value)
+                ObjectESP.Trap = value
+                _G.Settings.ObjectESP_Trap = value
+            end)
+            trapToggle.Position = UDim2.new(0, 10, 0, yPos)
+            yPos = yPos + 40
+            
+            local totemToggle = createToggle("Totem", ObjectESP.Totem, function(value)
+                ObjectESP.Totem = value
+                _G.Settings.ObjectESP_Totem = value
+            end)
+            totemToggle.Position = UDim2.new(0, 10, 0, yPos)
+            yPos = yPos + 40
+            
+            local chestToggle = createToggle("Chest", ObjectESP.Chest, function(value)
+                ObjectESP.Chest = value
+                _G.Settings.ObjectESP_Chest = value
+            end)
+            chestToggle.Position = UDim2.new(0, 10, 0, yPos)
+            yPos = yPos + 40
+            
+            -- RGB секция
+            local rgbCategory = createCategory("ESP Color Settings")
+            rgbCategory.Position = UDim2.new(0, 10, 0, yPos)
+            yPos = yPos + 45
+            
+            -- Killer RGB
+            local killerRGB = createRGBSliders("KILLER", 
                 _G.Settings.ESP_KillerColor_R,
                 _G.Settings.ESP_KillerColor_G,
-                _G.Settings.ESP_KillerColor_B
-            )
-            ESP.TeamColor = Color3.fromRGB(
+                _G.Settings.ESP_KillerColor_B,
+                function(r, g, b)
+                    _G.Settings.ESP_KillerColor_R = r
+                    _G.Settings.ESP_KillerColor_G = g
+                    _G.Settings.ESP_KillerColor_B = b
+                    ESP.BoxColor = Color3.fromRGB(r, g, b)
+                end)
+            killerRGB.Position = UDim2.new(0, 10, 0, yPos)
+            yPos = yPos + 130
+            
+            -- Survivor RGB
+            local survivorRGB = createRGBSliders("SURVIVOR", 
                 _G.Settings.ESP_SurvivorColor_R,
                 _G.Settings.ESP_SurvivorColor_G,
-                _G.Settings.ESP_SurvivorColor_B
-            )
+                _G.Settings.ESP_SurvivorColor_B,
+                function(r, g, b)
+                    _G.Settings.ESP_SurvivorColor_R = r
+                    _G.Settings.ESP_SurvivorColor_G = g
+                    _G.Settings.ESP_SurvivorColor_B = b
+                    ESP.TeamColor = Color3.fromRGB(r, g, b)
+                end)
+            survivorRGB.Position = UDim2.new(0, 10, 0, yPos)
+            yPos = yPos + 130
             
-            ObjectESP.Enabled = _G.Settings.ObjectESP_Enabled
-            ObjectESP.Hatch = _G.Settings.ObjectESP_Hatch
-            ObjectESP.ExitGate = _G.Settings.ObjectESP_ExitGate
-            ObjectESP.Generator = _G.Settings.ObjectESP_Generator
-            ObjectESP.Window = _G.Settings.ObjectESP_Window
-            ObjectESP.Hook = _G.Settings.ObjectESP_Hook
-            ObjectESP.Pallet = _G.Settings.ObjectESP_Pallet
-            ObjectESP.Trap = _G.Settings.ObjectESP_Trap
-            ObjectESP.Totem = _G.Settings.ObjectESP_Totem
-            ObjectESP.Chest = _G.Settings.ObjectESP_Chest
-            ObjectESP.MaxDistance = _G.Settings.ObjectESP_MaxDistance
-            ObjectESP.ShowDistance = _G.Settings.ObjectESP_ShowDistance
-            
-            local objColor = Color3.fromRGB(
+            -- Object RGB
+            local objectRGB = createRGBSliders("OBJECT", 
                 _G.Settings.ESP_ObjectColor_R,
                 _G.Settings.ESP_ObjectColor_G,
-                _G.Settings.ESP_ObjectColor_B
-            )
-            ObjectESP.Colors.Hatch = objColor
-            ObjectESP.Colors.ExitGate = objColor
-            ObjectESP.Colors.Generator = objColor
-            ObjectESP.Colors.Window = objColor
-            ObjectESP.Colors.Hook = objColor
-            ObjectESP.Colors.Pallet = objColor
-            ObjectESP.Colors.Trap = objColor
-            ObjectESP.Colors.Totem = objColor
-            ObjectESP.Colors.Chest = objColor
+                _G.Settings.ESP_ObjectColor_B,
+                function(r, g, b)
+                    _G.Settings.ESP_ObjectColor_R = r
+                    _G.Settings.ESP_ObjectColor_G = g
+                    _G.Settings.ESP_ObjectColor_B = b
+                    local objColor = Color3.fromRGB(r, g, b)
+                    ObjectESP.Colors.Hatch = objColor
+                    ObjectESP.Colors.ExitGate = objColor
+                    ObjectESP.Colors.Generator = objColor
+                    ObjectESP.Colors.Window = objColor
+                    ObjectESP.Colors.Hook = objColor
+                    ObjectESP.Colors.Pallet = objColor
+                    ObjectESP.Colors.Trap = objColor
+                    ObjectESP.Colors.Totem = objColor
+                    ObjectESP.Colors.Chest = objColor
+                end)
+            objectRGB.Position = UDim2.new(0, 10, 0, yPos)
+            yPos = yPos + 130
             
-            FOVChanger.Enabled = _G.Settings.FOVChanger_Enabled
-            FOVChanger.Value = _G.Settings.FOVChanger_Value
+            Content.CanvasSize = UDim2.new(0, 0, 0, yPos + 20)
             
-            DrawFOV.Enabled = _G.Settings.DrawFOV_Enabled
-            DrawFOV.Radius = _G.Settings.DrawFOV_Radius
+        elseif currentTab == "SpeedHack" then
+            local speedCategory = createCategory("Speed Hack")
+            speedCategory.Position = UDim2.new(0, 10, 0, yPos)
+            yPos = yPos + 45
             
-            SpeedHack.Enabled = _G.Settings.SpeedHack_Enabled
-            SpeedHack.Key = _G.Settings.SpeedHack_Key
-            SpeedHack.Speed = _G.Settings.SpeedHack_Speed
-            SpeedHack.Mode = _G.Settings.SpeedHack_Mode
+            local speedToggle = createToggle("Enable Speed Hack", SpeedHack.Enabled, function(value)
+                SpeedHack.Enabled = value
+                _G.Settings.SpeedHack_Enabled = value
+                if not value then
+                    SpeedHack.Active = false
+                    if SpeedHack.Connection then
+                        SpeedHack.Connection:Disconnect()
+                        SpeedHack.Connection = nil
+                    end
+                end
+                updateSpeedHack()
+            end)
+            speedToggle.Position = UDim2.new(0, 10, 0, yPos)
+            yPos = yPos + 40
             
-            DefaultSpeed.Enabled = _G.Settings.DefaultSpeed_Enabled
-            DefaultSpeed.Value = _G.Settings.DefaultSpeed_Value
+            local speedModeDropdown = createDropdown("Speed Mode", {"Always On", "Hold", "Toggle"}, SpeedHack.Mode, function(value)
+                SpeedHack.Mode = value
+                _G.Settings.SpeedHack_Mode = value
+                updateSpeedHack()
+            end)
+            speedModeDropdown.Position = UDim2.new(0, 10, 0, yPos)
+            yPos = yPos + 40
             
-            WindowVaultSpeed.Enabled = _G.Settings.WindowVaultSpeed_Enabled
-            WindowVaultSpeed.Value = _G.Settings.WindowVaultSpeed_Value
+            local speedSlider = createSlider("Speed", 1, 20, SpeedHack.Speed, 0.1, function(value)
+                SpeedHack.Speed = value
+                _G.Settings.SpeedHack_Speed = value
+                updateSpeedHack()
+            end)
+            speedSlider.Position = UDim2.new(0, 10, 0, yPos)
+            yPos = yPos + 55
             
-            Dash.Enabled = _G.Settings.Dash_Enabled
-            Dash.Key = _G.Settings.Dash_Key
-            Dash.Distance = _G.Settings.Dash_Distance
+            local defaultSpeedCategory = createCategory("Default Speed")
+            defaultSpeedCategory.Position = UDim2.new(0, 10, 0, yPos)
+            yPos = yPos + 45
             
-            NoFallStun.Enabled = _G.Settings.NoFallStun_Enabled
-            NoCollision.Enabled = _G.Settings.NoCollision_Enabled
-            NoCollision.Key = _G.Settings.NoCollision_Key
+            local defaultSpeedToggle = createToggle("Enable Default Speed", DefaultSpeed.Enabled, function(value)
+                DefaultSpeed.Enabled = value
+                _G.Settings.DefaultSpeed_Enabled = value
+                updateDefaultSpeed()
+            end)
+            defaultSpeedToggle.Position = UDim2.new(0, 10, 0, yPos)
+            yPos = yPos + 40
             
-            Fly.Enabled = _G.Settings.Fly_Enabled
-            Fly.Key = _G.Settings.Fly_Key
-            Fly.Speed = _G.Settings.Fly_Speed
+            local defaultSpeedSlider = createSlider("Default Speed", 5, 30, DefaultSpeed.Value, 1, function(value)
+                DefaultSpeed.Value = value
+                _G.Settings.DefaultSpeed_Value = value
+                updateDefaultSpeed()
+            end)
+            defaultSpeedSlider.Position = UDim2.new(0, 10, 0, yPos)
+            yPos = yPos + 55
             
-            Jump.Enabled = _G.Settings.Jump_Enabled
-            Jump.Key = _G.Settings.Jump_Key
-            Jump.Power = _G.Settings.Jump_Power
+            local windowVaultCategory = createCategory("Window Vault Speed")
+            windowVaultCategory.Position = UDim2.new(0, 10, 0, yPos)
+            yPos = yPos + 45
             
-            MagnetAim.Enabled = _G.Settings.MagnetAim_Enabled
-            MagnetAim.Key = _G.Settings.MagnetAim_Key
-            MagnetAim.Speed = _G.Settings.MagnetAim_Speed
+            local windowVaultToggle = createToggle("Enable Window Vault Speed", WindowVaultSpeed.Enabled, function(value)
+                WindowVaultSpeed.Enabled = value
+                _G.Settings.WindowVaultSpeed_Enabled = value
+                updateWindowVaultSpeed()
+            end)
+            windowVaultToggle.Position = UDim2.new(0, 10, 0, yPos)
+            yPos = yPos + 40
             
-            BugPallet.Enabled = _G.Settings.BugPallet_Enabled
-            BugPallet.Key = _G.Settings.BugPallet_Key
+            local windowVaultSlider = createSlider("Vault Speed", 0.1, 5.0, WindowVaultSpeed.Value, 0.1, function(value)
+                WindowVaultSpeed.Value = value
+                _G.Settings.WindowVaultSpeed_Value = value
+                updateWindowVaultSpeed()
+            end)
+            windowVaultSlider.Position = UDim2.new(0, 10, 0, yPos)
+            yPos = yPos + 55
             
-            SelfHeal.Enabled = _G.Settings.SelfHeal_Enabled
-            SelfHeal.Key = _G.Settings.SelfHeal_Key
+            local dashCategory = createCategory("Dash")
+            dashCategory.Position = UDim2.new(0, 10, 0, yPos)
+            yPos = yPos + 45
             
-            HealthStateChange.Enabled = _G.Settings.HealthStateChange_Enabled
-            HealthStateChange.Key = _G.Settings.HealthStateChange_Key
+            local dashToggle = createToggle("Enable Dash", Dash.Enabled, function(value)
+                Dash.Enabled = value
+                _G.Settings.Dash_Enabled = value
+            end)
+            dashToggle.Position = UDim2.new(0, 10, 0, yPos)
+            yPos = yPos + 40
             
-            LungeBoost.Enabled = _G.Settings.LungeBoost_Enabled
-            InfiniteLungeDuration.Enabled = _G.Settings.InfiniteLunge_Enabled
-            NoStunBeforeMiss.Enabled = _G.Settings.NoStunBeforeMiss_Enabled
-            InfiniteBlinks.Enabled = _G.Settings.InfiniteBlinks_Enabled
+            local dashDistanceSlider = createSlider("Dash Distance", 5, 30, Dash.Distance, 1, function(value)
+                Dash.Distance = value
+                _G.Settings.Dash_Distance = value
+            end)
+            dashDistanceSlider.Position = UDim2.new(0, 10, 0, yPos)
+            yPos = yPos + 55
             
-            SelectSystem.SelectKey = _G.Settings.SelectSystem_SelectKey
-            SelectSystem.InstaHit.Enabled = _G.Settings.InstaHit_Enabled
-            SelectSystem.InstaHit.Key = _G.Settings.InstaHit_Key
-            SelectSystem.InstaRescue.Enabled = _G.Settings.InstaRescue_Enabled
-            SelectSystem.InstaRescue.Key = _G.Settings.InstaRescue_Key
-            SelectSystem.InstaHook.Enabled = _G.Settings.InstaHook_Enabled
-            SelectSystem.InstaHook.Key = _G.Settings.InstaHook_Key
+            Content.CanvasSize = UDim2.new(0, 0, 0, yPos + 20)
             
-            AutoSkillCheck.Enabled = _G.Settings.AutoSkillCheck_Enabled
-            AutoSkillCheck.Cooldown = _G.Settings.AutoSkillCheck_Cooldown
+        elseif currentTab == "Functions" then
+            -- General Section
+            local generalCategory = createCategory("General")
+            generalCategory.Position = UDim2.new(0, 10, 0, yPos)
+            yPos = yPos + 45
             
-            Moonwalk.Enabled = _G.Settings.Moonwalk_Enabled
-            Moonwalk.Key = _G.Settings.Moonwalk_Key
-            Moonwalk.MoonwalkType = _G.Settings.Moonwalk_Type
+            local noFallStunToggle = createToggle("No Fall Stun", NoFallStun.Enabled, function(value)
+                NoFallStun.Enabled = value
+                _G.Settings.NoFallStun_Enabled = value
+                updateNoFallStun()
+            end)
+            noFallStunToggle.Position = UDim2.new(0, 10, 0, yPos)
+            yPos = yPos + 40
             
-            EmoteSystem.Enabled = _G.Settings.EmoteSystem_Enabled
-            EmoteSystem.WheelKey = _G.Settings.EmoteSystem_WheelKey
-            EmoteSystem.NextPageKey = _G.Settings.EmoteSystem_NextPageKey
-            EmoteSystem.PrevPageKey = _G.Settings.EmoteSystem_PrevPageKey
+            local noCollisionToggle = createToggle("No Collision", NoCollision.Enabled, function(value)
+                NoCollision.Enabled = value
+                _G.Settings.NoCollision_Enabled = value
+                updateNoCollision()
+            end)
+            noCollisionToggle.Position = UDim2.new(0, 10, 0, yPos)
+            yPos = yPos + 40
             
-            MiniHUD.Enabled = _G.Settings.MiniHUD_Enabled
+            if CurrentRole == "Survivor" then
+                local bugPalletToggle = createToggle("Bug Pallet", BugPallet.Enabled, function(value)
+                    BugPallet.Enabled = value
+                    _G.Settings.BugPallet_Enabled = value
+                    updateBugPallet()
+                end)
+                bugPalletToggle.Position = UDim2.new(0, 10, 0, yPos)
+                yPos = yPos + 40
+            end
             
-            Misc.Fullbright.Enabled = _G.Settings.Fullbright_Enabled
-            Misc.ResolutionModifier.Enabled = _G.Settings.ResolutionModifier_Enabled
-            Misc.ResolutionModifier.Value = _G.Settings.ResolutionModifier_Value
-            Misc.BlindProgress.Enabled = _G.Settings.BlindProgress_Enabled
+            -- Health Section
+            local healthCategory = createCategory("Health")
+            healthCategory.Position = UDim2.new(0, 10, 0, yPos)
+            yPos = yPos + 45
             
-            -- Обновляем все функции
-            updateFOV()
-            updateDrawFOV()
-            updateSpeedHack()
-            updateDefaultSpeed()
-            updateWindowVaultSpeed()
-            updateLungeBoost()
-            updateInfiniteLungeDuration()
-            updateNoStunBeforeMiss()
-            updateInfiniteBlinks()
-            updateNoFallStun()
-            updateNoCollision()
-            updateBugPallet()
-            updateSelfHeal()
-            updateHealthStateChange()
-            updateAutoSkillCheck()
-            updateEmoteSystem()
-            updateMiniHUDVisibility()
-            updateFullbright()
-            updateResolutionModifier()
-            updateBlindProgress()
-            updateSelectSystem()
+            if CurrentRole == "Survivor" then
+                local selfHealToggle = createToggle("Enable Self-Heal", SelfHeal.Enabled, function(value)
+                    SelfHeal.Enabled = value
+                    _G.Settings.SelfHeal_Enabled = value
+                    if not value and SelfHeal.Active then
+                        stopHealing()
+                    end
+                    updateSelfHeal()
+                end)
+                selfHealToggle.Position = UDim2.new(0, 10, 0, yPos)
+                yPos = yPos + 40
+                
+                local healthStateToggle = createToggle("Enable Health State Change", HealthStateChange.Enabled, function(value)
+                    HealthStateChange.Enabled = value
+                    _G.Settings.HealthStateChange_Enabled = value
+                    updateHealthStateChange()
+                end)
+                healthStateToggle.Position = UDim2.new(0, 10, 0, yPos)
+                yPos = yPos + 40
+            end
             
-            game:GetService("StarterGui"):SetCore("SendNotification", {
-                Title = "Config",
-                Text = "Reset Complete!",
-                Duration = 2
-            })
-        end)
-        resetButton.Position = UDim2.new(0, 10, 0, yPos)
-        yPos = yPos + 50
-        
-        local infoText = Instance.new("TextLabel")
-        infoText.Size = UDim2.new(1, -20, 0, 40)
-        infoText.Position = UDim2.new(0, 10, 0, yPos)
-        infoText.BackgroundTransparency = 1
-        infoText.Text = "Config for " .. GameMode .. " mode\nClick SAVE to save current settings\nClick RESET to restore defaults"
-        infoText.TextColor3 = Color3.fromRGB(160, 140, 210)
-        infoText.TextSize = 12
-        infoText.Font = Enum.Font.Gotham
-        infoText.TextWrapped = true
-        infoText.TextXAlignment = Enum.TextXAlignment.Center
-        infoText.Parent = Content
-        yPos = yPos + 50
-        
-        Content.CanvasSize = UDim2.new(0, 0, 0, yPos + 20)
+            -- Instant Section
+            local instantCategory = createCategory("Instant")
+            instantCategory.Position = UDim2.new(0, 10, 0, yPos)
+            yPos = yPos + 45
+            
+            local instaHitToggle = createToggle("Insta Hit", SelectSystem.InstaHit.Enabled, function(value)
+                SelectSystem.InstaHit.Enabled = value
+                _G.Settings.InstaHit_Enabled = value
+            end)
+            instaHitToggle.Position = UDim2.new(0, 10, 0, yPos)
+            yPos = yPos + 40
+            
+            if CurrentRole == "Survivor" then
+                local instaRescueToggle = createToggle("Insta Rescue", SelectSystem.InstaRescue.Enabled, function(value)
+                    SelectSystem.InstaRescue.Enabled = value
+                    _G.Settings.InstaRescue_Enabled = value
+                end)
+                instaRescueToggle.Position = UDim2.new(0, 10, 0, yPos)
+                yPos = yPos + 40
+            end
+            
+            if CurrentRole == "Killer" then
+                local instaHookToggle = createToggle("Insta Hook", SelectSystem.InstaHook.Enabled, function(value)
+                    SelectSystem.InstaHook.Enabled = value
+                    _G.Settings.InstaHook_Enabled = value
+                end)
+                instaHookToggle.Position = UDim2.new(0, 10, 0, yPos)
+                yPos = yPos + 40
+            end
+            
+            -- Killer Section
+            if CurrentRole == "Killer" then
+                local killerCategory = createCategory("Killer")
+                killerCategory.Position = UDim2.new(0, 10, 0, yPos)
+                yPos = yPos + 45
+                
+                local infiniteBlinksToggle = createToggle("Infinite Blinks", InfiniteBlinks.Enabled, function(value)
+                    InfiniteBlinks.Enabled = value
+                    _G.Settings.InfiniteBlinks_Enabled = value
+                    updateInfiniteBlinks()
+                end)
+                infiniteBlinksToggle.Position = UDim2.new(0, 10, 0, yPos)
+                yPos = yPos + 40
+                
+                local lungeBoostToggle = createToggle("Lunge Boost", LungeBoost.Enabled, function(value)
+                    LungeBoost.Enabled = value
+                    _G.Settings.LungeBoost_Enabled = value
+                    updateLungeBoost()
+                end)
+                lungeBoostToggle.Position = UDim2.new(0, 10, 0, yPos)
+                yPos = yPos + 40
+                
+                local infiniteLungeToggle = createToggle("Infinite Lunge", InfiniteLungeDuration.Enabled, function(value)
+                    InfiniteLungeDuration.Enabled = value
+                    _G.Settings.InfiniteLunge_Enabled = value
+                    updateInfiniteLungeDuration()
+                end)
+                infiniteLungeToggle.Position = UDim2.new(0, 10, 0, yPos)
+                yPos = yPos + 40
+                
+                local noStunToggle = createToggle("No Stun Before Miss", NoStunBeforeMiss.Enabled, function(value)
+                    NoStunBeforeMiss.Enabled = value
+                    _G.Settings.NoStunBeforeMiss_Enabled = value
+                    updateNoStunBeforeMiss()
+                end)
+                noStunToggle.Position = UDim2.new(0, 10, 0, yPos)
+                yPos = yPos + 40
+                
+                local magnetAimToggle = createToggle("Magnet Aim (Q)", MagnetAim.Enabled, function(value)
+                    MagnetAim.Enabled = value
+                    _G.Settings.MagnetAim_Enabled = value
+                end)
+                magnetAimToggle.Position = UDim2.new(0, 10, 0, yPos)
+                yPos = yPos + 40
+            end
+            
+            -- Flight & Jump
+            local flyJumpCategory = createCategory("Flight & Jump")
+            flyJumpCategory.Position = UDim2.new(0, 10, 0, yPos)
+            yPos = yPos + 45
+            
+            local jumpToggle = createToggle("Enable Jump", Jump.Enabled, function(value)
+                Jump.Enabled = value
+                _G.Settings.Jump_Enabled = value
+            end)
+            jumpToggle.Position = UDim2.new(0, 10, 0, yPos)
+            yPos = yPos + 40
+            
+            local jumpPowerSlider = createSlider("Jump Power", 20, 100, Jump.Power, 1, function(value)
+                Jump.Power = value
+                _G.Settings.Jump_Power = value
+            end)
+            jumpPowerSlider.Position = UDim2.new(0, 10, 0, yPos)
+            yPos = yPos + 55
+            
+            local flyToggle = createToggle("Enable Fly (V)", Fly.Enabled, function(value)
+                Fly.Enabled = value
+                _G.Settings.Fly_Enabled = value
+                if not value and Fly.Active then
+                    toggleFly()
+                end
+            end)
+            flyToggle.Position = UDim2.new(0, 10, 0, yPos)
+            yPos = yPos + 40
+            
+            local flySpeedSlider = createSlider("Fly Speed", 10, 150, Fly.Speed, 1, function(value)
+                Fly.Speed = value
+                _G.Settings.Fly_Speed = value
+            end)
+            flySpeedSlider.Position = UDim2.new(0, 10, 0, yPos)
+            yPos = yPos + 55
+            
+            Content.CanvasSize = UDim2.new(0, 0, 0, yPos + 20)
+            
+        elseif currentTab == "Auto" then
+            local autoCategory = createCategory("Auto SkillCheck")
+            autoCategory.Position = UDim2.new(0, 10, 0, yPos)
+            yPos = yPos + 45
+            
+            local autoSkillCheckToggle = createToggle("Enable Auto SkillCheck", AutoSkillCheck.Enabled, function(value)
+                AutoSkillCheck.Enabled = value
+                _G.Settings.AutoSkillCheck_Enabled = value
+                updateAutoSkillCheck()
+            end)
+            autoSkillCheckToggle.Position = UDim2.new(0, 10, 0, yPos)
+            yPos = yPos + 40
+            
+            if CurrentRole == "Survivor" then
+                local moonwalkCategory = createCategory("Auto Moonwalk")
+                moonwalkCategory.Position = UDim2.new(0, 10, 0, yPos)
+                yPos = yPos + 45
+                
+                local moonwalkToggle = createToggle("Enable Auto Moonwalk", Moonwalk.Enabled, function(value)
+                    Moonwalk.Enabled = value
+                    _G.Settings.Moonwalk_Enabled = value
+                    if not value and Moonwalk.Active then
+                        ToggleMoonwalk()
+                    end
+                end)
+                moonwalkToggle.Position = UDim2.new(0, 10, 0, yPos)
+                yPos = yPos + 40
+                
+                local moonwalkTypeDropdown = createDropdown("Moonwalk Type", {"Backward", "Forward", "Left Side", "Right Side"}, Moonwalk.MoonwalkType, function(value)
+                    Moonwalk.MoonwalkType = value
+                    _G.Settings.Moonwalk_Type = value
+                end)
+                moonwalkTypeDropdown.Position = UDim2.new(0, 10, 0, yPos)
+                yPos = yPos + 40
+            end
+            
+            Content.CanvasSize = UDim2.new(0, 0, 0, yPos + 20)
+            
+        elseif currentTab == "Keybinds" then
+            local keybindsCategory = createCategory("Keybinds")
+            keybindsCategory.Position = UDim2.new(0, 10, 0, yPos)
+            yPos = yPos + 45
+            
+            local generalCategory = createCategory("General")
+            generalCategory.Position = UDim2.new(0, 10, 0, yPos)
+            yPos = yPos + 30
+            
+            local menuKeybindInsert = createKeybindButton("Menu Key Insert", "Insert", function(key)
+                MENU_KEY_INSERT = Enum.KeyCode[key]
+                _G.Settings.MenuKey = key
+            end, true)
+            menuKeybindInsert.Position = UDim2.new(0, 10, 0, yPos)
+            yPos = yPos + 40
+            
+            local menuKeybindDelete = createKeybindButton("Menu Key Delete", "Delete", function(key)
+                MENU_KEY_DELETE = Enum.KeyCode[key]
+            end, true)
+            menuKeybindDelete.Position = UDim2.new(0, 10, 0, yPos)
+            yPos = yPos + 40
+            
+            local selectCategory = createCategory("Select System")
+            selectCategory.Position = UDim2.new(0, 10, 0, yPos)
+            yPos = yPos + 30
+            
+            local selectKeybind = createKeybindButton("Select Target", SelectSystem.SelectKey, function(key)
+                SelectSystem.SelectKey = key
+                _G.Settings.SelectSystem_SelectKey = key
+                updateSelectSystem()
+            end, false)
+            selectKeybind.Position = UDim2.new(0, 10, 0, yPos)
+            yPos = yPos + 40
+            
+            local instaHitKeybind = createKeybindButton("Insta Hit Key", SelectSystem.InstaHit.Key, function(key)
+                SelectSystem.InstaHit.Key = key
+                _G.Settings.InstaHit_Key = key
+                updateSelectSystem()
+            end, false)
+            instaHitKeybind.Position = UDim2.new(0, 10, 0, yPos)
+            yPos = yPos + 40
+            
+            if CurrentRole == "Survivor" then
+                local instaRescueKeybind = createKeybindButton("Insta Rescue Key", SelectSystem.InstaRescue.Key, function(key)
+                    SelectSystem.InstaRescue.Key = key
+                    _G.Settings.InstaRescue_Key = key
+                    updateSelectSystem()
+                end, false)
+                instaRescueKeybind.Position = UDim2.new(0, 10, 0, yPos)
+                yPos = yPos + 40
+            end
+            
+            if CurrentRole == "Killer" then
+                local instaHookKeybind = createKeybindButton("Insta Hook Key", SelectSystem.InstaHook.Key, function(key)
+                    SelectSystem.InstaHook.Key = key
+                    _G.Settings.InstaHook_Key = key
+                    updateSelectSystem()
+                end, false)
+                instaHookKeybind.Position = UDim2.new(0, 10, 0, yPos)
+                yPos = yPos + 40
+            end
+            
+            local speedCategory = createCategory("SpeedHack")
+            speedCategory.Position = UDim2.new(0, 10, 0, yPos)
+            yPos = yPos + 30
+            
+            local speedKeybind = createKeybindButton("Speed Hack Key", SpeedHack.Key, function(key)
+                SpeedHack.Key = key
+                _G.Settings.SpeedHack_Key = key
+            end, false)
+            speedKeybind.Position = UDim2.new(0, 10, 0, yPos)
+            yPos = yPos + 40
+            
+            local dashKeybind = createKeybindButton("Dash Key", Dash.Key, function(key)
+                Dash.Key = key
+                _G.Settings.Dash_Key = key
+            end, false)
+            dashKeybind.Position = UDim2.new(0, 10, 0, yPos)
+            yPos = yPos + 40
+            
+            local functionsCategory = createCategory("Functions")
+            functionsCategory.Position = UDim2.new(0, 10, 0, yPos)
+            yPos = yPos + 30
+            
+            local flyKeybind = createKeybindButton("Fly Key", Fly.Key, function(key)
+                Fly.Key = key
+                _G.Settings.Fly_Key = key
+            end, false)
+            flyKeybind.Position = UDim2.new(0, 10, 0, yPos)
+            yPos = yPos + 40
+            
+            local jumpKeybind = createKeybindButton("Jump Key", Jump.Key, function(key)
+                Jump.Key = key
+                _G.Settings.Jump_Key = key
+            end, false)
+            jumpKeybind.Position = UDim2.new(0, 10, 0, yPos)
+            yPos = yPos + 40
+            
+            if CurrentRole == "Survivor" then
+                local moonwalkKeybind = createKeybindButton("Moonwalk Key", Moonwalk.Key, function(key)
+                    Moonwalk.Key = key
+                    _G.Settings.Moonwalk_Key = key
+                end, false)
+                moonwalkKeybind.Position = UDim2.new(0, 10, 0, yPos)
+                yPos = yPos + 40
+                
+                local bugPalletKeybind = createKeybindButton("Bug Pallet Key", BugPallet.Key, function(key)
+                    BugPallet.Key = key
+                    _G.Settings.BugPallet_Key = key
+                end, false)
+                bugPalletKeybind.Position = UDim2.new(0, 10, 0, yPos)
+                yPos = yPos + 40
+                
+                local selfHealKeybind = createKeybindButton("Self-Heal Key", SelfHeal.Key, function(key)
+                    SelfHeal.Key = key
+                    _G.Settings.SelfHeal_Key = key
+                end, false)
+                selfHealKeybind.Position = UDim2.new(0, 10, 0, yPos)
+                yPos = yPos + 40
+                
+                local healthStateKeybind = createKeybindButton("Health State Key", HealthStateChange.Key, function(key)
+                    HealthStateChange.Key = key
+                    _G.Settings.HealthStateChange_Key = key
+                end, false)
+                healthStateKeybind.Position = UDim2.new(0, 10, 0, yPos)
+                yPos = yPos + 40
+            end
+            
+            if CurrentRole == "Killer" then
+                local magnetKeybind = createKeybindButton("Magnet Aim Key", MagnetAim.Key, function(key)
+                    MagnetAim.Key = key
+                    _G.Settings.MagnetAim_Key = key
+                end, false)
+                magnetKeybind.Position = UDim2.new(0, 10, 0, yPos)
+                yPos = yPos + 40
+            end
+            
+            local noCollisionKeybind = createKeybindButton("No Collision Key", NoCollision.Key, function(key)
+                NoCollision.Key = key
+                _G.Settings.NoCollision_Key = key
+            end, false)
+            noCollisionKeybind.Position = UDim2.new(0, 10, 0, yPos)
+            yPos = yPos + 40
+            
+            local emoteKeybindsCategory = createCategory("Emote System (3 Pages)")
+            emoteKeybindsCategory.Position = UDim2.new(0, 10, 0, yPos)
+            yPos = yPos + 30
+            
+            local emoteWheelKeybind = createKeybindButton("Emote Wheel Key", EmoteSystem.WheelKey, function(key)
+                EmoteSystem.WheelKey = key
+                _G.Settings.EmoteSystem_WheelKey = key
+                updateEmoteSystem()
+            end, false)
+            emoteWheelKeybind.Position = UDim2.new(0, 10, 0, yPos)
+            yPos = yPos + 40
+            
+            local nextPageKeybind = createKeybindButton("Next Page Key (Up)", EmoteSystem.NextPageKey, function(key)
+                EmoteSystem.NextPageKey = key
+                _G.Settings.EmoteSystem_NextPageKey = key
+                updateEmoteSystem()
+            end, false)
+            nextPageKeybind.Position = UDim2.new(0, 10, 0, yPos)
+            yPos = yPos + 40
+            
+            local prevPageKeybind = createKeybindButton("Prev Page Key (Down)", EmoteSystem.PrevPageKey, function(key)
+                EmoteSystem.PrevPageKey = key
+                _G.Settings.EmoteSystem_PrevPageKey = key
+                updateEmoteSystem()
+            end, false)
+            prevPageKeybind.Position = UDim2.new(0, 10, 0, yPos)
+            yPos = yPos + 40
+            
+            Content.CanvasSize = UDim2.new(0, 0, 0, yPos + 20)
+            
+        elseif currentTab == "MISC" then
+            local blindProgressCategory = createCategory("Blind Progress")
+            blindProgressCategory.Position = UDim2.new(0, 10, 0, yPos)
+            yPos = yPos + 45
+            
+            local blindProgressToggle = createToggle("Enable Blind Progress", Misc.BlindProgress.Enabled, function(value)
+                Misc.BlindProgress.Enabled = value
+                _G.Settings.BlindProgress_Enabled = value
+                updateBlindProgress()
+            end)
+            blindProgressToggle.Position = UDim2.new(0, 10, 0, yPos)
+            yPos = yPos + 40
+            
+            local fullbrightCategory = createCategory("Fullbright")
+            fullbrightCategory.Position = UDim2.new(0, 10, 0, yPos)
+            yPos = yPos + 45
+            
+            local fullbrightToggle = createToggle("Enable Fullbright", Misc.Fullbright.Enabled, function(value)
+                Misc.Fullbright.Enabled = value
+                _G.Settings.Fullbright_Enabled = value
+                updateFullbright()
+            end)
+            fullbrightToggle.Position = UDim2.new(0, 10, 0, yPos)
+            yPos = yPos + 40
+            
+            local miniHudCategory = createCategory("Mini HUD")
+            miniHudCategory.Position = UDim2.new(0, 10, 0, yPos)
+            yPos = yPos + 45
+            
+            local miniHudToggle = createToggle("Enable Mini HUD", MiniHUD.Enabled, function(value)
+                MiniHUD.Enabled = value
+                _G.Settings.MiniHUD_Enabled = value
+                updateMiniHUDVisibility()
+            end)
+            miniHudToggle.Position = UDim2.new(0, 10, 0, yPos)
+            yPos = yPos + 40
+            
+            local fovCategory = createCategory("FOV Changer")
+            fovCategory.Position = UDim2.new(0, 10, 0, yPos)
+            yPos = yPos + 45
+            
+            local fovToggle = createToggle("Enable FOV Changer", FOVChanger.Enabled, function(value)
+                FOVChanger.Enabled = value
+                _G.Settings.FOVChanger_Enabled = value
+                updateFOV()
+            end)
+            fovToggle.Position = UDim2.new(0, 10, 0, yPos)
+            yPos = yPos + 40
+            
+            local fovSlider = createSlider("FOV Value", FOVChanger.MinValue, FOVChanger.MaxValue, FOVChanger.Value, FOVChanger.Step, function(value)
+                FOVChanger.Value = value
+                _G.Settings.FOVChanger_Value = value
+                updateFOV()
+            end)
+            fovSlider.Position = UDim2.new(0, 10, 0, yPos)
+            yPos = yPos + 55
+            
+            local drawFovCategory = createCategory("Draw FOV")
+            drawFovCategory.Position = UDim2.new(0, 10, 0, yPos)
+            yPos = yPos + 45
+            
+            local drawFovToggle = createToggle("Enable Draw FOV", DrawFOV.Enabled, function(value)
+                DrawFOV.Enabled = value
+                _G.Settings.DrawFOV_Enabled = value
+                updateDrawFOV()
+            end)
+            drawFovToggle.Position = UDim2.new(0, 10, 0, yPos)
+            yPos = yPos + 40
+            
+            local fovRadiusSlider = createSlider("FOV Radius", 50, 300, DrawFOV.Radius, 5, function(value)
+                DrawFOV.Radius = value
+                _G.Settings.DrawFOV_Radius = value
+                updateDrawFOV()
+            end)
+            fovRadiusSlider.Position = UDim2.new(0, 10, 0, yPos)
+            yPos = yPos + 55
+            
+            local resCategory = createCategory("Resolution Modifier")
+            resCategory.Position = UDim2.new(0, 10, 0, yPos)
+            yPos = yPos + 45
+            
+            local resToggle = createToggle("Enable Resolution Mod", Misc.ResolutionModifier.Enabled, function(value)
+                Misc.ResolutionModifier.Enabled = value
+                _G.Settings.ResolutionModifier_Enabled = value
+                updateResolutionModifier()
+            end)
+            resToggle.Position = UDim2.new(0, 10, 0, yPos)
+            yPos = yPos + 40
+            
+            local resSlider = createSlider("Resolution Value", 0.1, 1.2, Misc.ResolutionModifier.Value, 0.05, function(value)
+                Misc.ResolutionModifier.Value = value
+                _G.Settings.ResolutionModifier_Value = value
+                updateResolutionModifier()
+            end)
+            resSlider.Position = UDim2.new(0, 10, 0, yPos)
+            yPos = yPos + 55
+            
+            Content.CanvasSize = UDim2.new(0, 0, 0, yPos + 20)
+            
+        elseif currentTab == "Config" then
+            local configCategory = createCategory("Config Management")
+            configCategory.Position = UDim2.new(0, 10, 0, yPos)
+            yPos = yPos + 45
+            
+            local saveButton = createButton("💾 SAVE CONFIG", Color3.fromRGB(110, 85, 210), function()
+                _G.SaveConfig()
+            end)
+            saveButton.Position = UDim2.new(0, 10, 0, yPos)
+            yPos = yPos + 50
+            
+            local resetButton = createButton("🔄 RESET CONFIG", Color3.fromRGB(110, 85, 210), function()
+                _G.ResetConfig()
+                
+                -- Обновляем все значения в скрипте после сброса
+                ESP.Enabled = _G.Settings.ESP_Enabled
+                ESP.Names = _G.Settings.ESP_Names
+                ESP.Health = _G.Settings.ESP_Health
+                ESP.Highlights = _G.Settings.ESP_Highlights
+                ESP.Skeletons = _G.Settings.ESP_Skeletons
+                ESP.TeamCheck = _G.Settings.ESP_TeamCheck
+                ESP.MaxDistance = _G.Settings.ESP_MaxDistance
+                ESP.BoxColor = Color3.fromRGB(
+                    _G.Settings.ESP_KillerColor_R,
+                    _G.Settings.ESP_KillerColor_G,
+                    _G.Settings.ESP_KillerColor_B
+                )
+                ESP.TeamColor = Color3.fromRGB(
+                    _G.Settings.ESP_SurvivorColor_R,
+                    _G.Settings.ESP_SurvivorColor_G,
+                    _G.Settings.ESP_SurvivorColor_B
+                )
+                
+                ObjectESP.Enabled = _G.Settings.ObjectESP_Enabled
+                ObjectESP.Hatch = _G.Settings.ObjectESP_Hatch
+                ObjectESP.ExitGate = _G.Settings.ObjectESP_ExitGate
+                ObjectESP.Generator = _G.Settings.ObjectESP_Generator
+                ObjectESP.Window = _G.Settings.ObjectESP_Window
+                ObjectESP.Hook = _G.Settings.ObjectESP_Hook
+                ObjectESP.Pallet = _G.Settings.ObjectESP_Pallet
+                ObjectESP.Trap = _G.Settings.ObjectESP_Trap
+                ObjectESP.Totem = _G.Settings.ObjectESP_Totem
+                ObjectESP.Chest = _G.Settings.ObjectESP_Chest
+                ObjectESP.MaxDistance = _G.Settings.ObjectESP_MaxDistance
+                ObjectESP.ShowDistance = _G.Settings.ObjectESP_ShowDistance
+                
+                local objColor = Color3.fromRGB(
+                    _G.Settings.ESP_ObjectColor_R,
+                    _G.Settings.ESP_ObjectColor_G,
+                    _G.Settings.ESP_ObjectColor_B
+                )
+                ObjectESP.Colors.Hatch = objColor
+                ObjectESP.Colors.ExitGate = objColor
+                ObjectESP.Colors.Generator = objColor
+                ObjectESP.Colors.Window = objColor
+                ObjectESP.Colors.Hook = objColor
+                ObjectESP.Colors.Pallet = objColor
+                ObjectESP.Colors.Trap = objColor
+                ObjectESP.Colors.Totem = objColor
+                ObjectESP.Colors.Chest = objColor
+                
+                FOVChanger.Enabled = _G.Settings.FOVChanger_Enabled
+                FOVChanger.Value = _G.Settings.FOVChanger_Value
+                
+                DrawFOV.Enabled = _G.Settings.DrawFOV_Enabled
+                DrawFOV.Radius = _G.Settings.DrawFOV_Radius
+                
+                SpeedHack.Enabled = _G.Settings.SpeedHack_Enabled
+                SpeedHack.Key = _G.Settings.SpeedHack_Key
+                SpeedHack.Speed = _G.Settings.SpeedHack_Speed
+                SpeedHack.Mode = _G.Settings.SpeedHack_Mode
+                
+                DefaultSpeed.Enabled = _G.Settings.DefaultSpeed_Enabled
+                DefaultSpeed.Value = _G.Settings.DefaultSpeed_Value
+                
+                WindowVaultSpeed.Enabled = _G.Settings.WindowVaultSpeed_Enabled
+                WindowVaultSpeed.Value = _G.Settings.WindowVaultSpeed_Value
+                
+                Dash.Enabled = _G.Settings.Dash_Enabled
+                Dash.Key = _G.Settings.Dash_Key
+                Dash.Distance = _G.Settings.Dash_Distance
+                
+                NoFallStun.Enabled = _G.Settings.NoFallStun_Enabled
+                NoCollision.Enabled = _G.Settings.NoCollision_Enabled
+                NoCollision.Key = _G.Settings.NoCollision_Key
+                
+                Fly.Enabled = _G.Settings.Fly_Enabled
+                Fly.Key = _G.Settings.Fly_Key
+                Fly.Speed = _G.Settings.Fly_Speed
+                
+                Jump.Enabled = _G.Settings.Jump_Enabled
+                Jump.Key = _G.Settings.Jump_Key
+                Jump.Power = _G.Settings.Jump_Power
+                
+                MagnetAim.Enabled = _G.Settings.MagnetAim_Enabled
+                MagnetAim.Key = _G.Settings.MagnetAim_Key
+                MagnetAim.Speed = _G.Settings.MagnetAim_Speed
+                
+                BugPallet.Enabled = _G.Settings.BugPallet_Enabled
+                BugPallet.Key = _G.Settings.BugPallet_Key
+                
+                SelfHeal.Enabled = _G.Settings.SelfHeal_Enabled
+                SelfHeal.Key = _G.Settings.SelfHeal_Key
+                
+                HealthStateChange.Enabled = _G.Settings.HealthStateChange_Enabled
+                HealthStateChange.Key = _G.Settings.HealthStateChange_Key
+                
+                LungeBoost.Enabled = _G.Settings.LungeBoost_Enabled
+                InfiniteLungeDuration.Enabled = _G.Settings.InfiniteLunge_Enabled
+                NoStunBeforeMiss.Enabled = _G.Settings.NoStunBeforeMiss_Enabled
+                InfiniteBlinks.Enabled = _G.Settings.InfiniteBlinks_Enabled
+                
+                SelectSystem.SelectKey = _G.Settings.SelectSystem_SelectKey
+                SelectSystem.InstaHit.Enabled = _G.Settings.InstaHit_Enabled
+                SelectSystem.InstaHit.Key = _G.Settings.InstaHit_Key
+                SelectSystem.InstaRescue.Enabled = _G.Settings.InstaRescue_Enabled
+                SelectSystem.InstaRescue.Key = _G.Settings.InstaRescue_Key
+                SelectSystem.InstaHook.Enabled = _G.Settings.InstaHook_Enabled
+                SelectSystem.InstaHook.Key = _G.Settings.InstaHook_Key
+                
+                AutoSkillCheck.Enabled = _G.Settings.AutoSkillCheck_Enabled
+                AutoSkillCheck.Cooldown = _G.Settings.AutoSkillCheck_Cooldown
+                
+                Moonwalk.Enabled = _G.Settings.Moonwalk_Enabled
+                Moonwalk.Key = _G.Settings.Moonwalk_Key
+                Moonwalk.MoonwalkType = _G.Settings.Moonwalk_Type
+                
+                EmoteSystem.Enabled = _G.Settings.EmoteSystem_Enabled
+                EmoteSystem.WheelKey = _G.Settings.EmoteSystem_WheelKey
+                EmoteSystem.NextPageKey = _G.Settings.EmoteSystem_NextPageKey
+                EmoteSystem.PrevPageKey = _G.Settings.EmoteSystem_PrevPageKey
+                
+                MiniHUD.Enabled = _G.Settings.MiniHUD_Enabled
+                
+                Misc.Fullbright.Enabled = _G.Settings.Fullbright_Enabled
+                Misc.ResolutionModifier.Enabled = _G.Settings.ResolutionModifier_Enabled
+                Misc.ResolutionModifier.Value = _G.Settings.ResolutionModifier_Value
+                Misc.BlindProgress.Enabled = _G.Settings.BlindProgress_Enabled
+                
+                -- Обновляем все функции
+                updateFOV()
+                updateDrawFOV()
+                updateSpeedHack()
+                updateDefaultSpeed()
+                updateWindowVaultSpeed()
+                updateLungeBoost()
+                updateInfiniteLungeDuration()
+                updateNoStunBeforeMiss()
+                updateInfiniteBlinks()
+                updateNoFallStun()
+                updateNoCollision()
+                updateBugPallet()
+                updateSelfHeal()
+                updateHealthStateChange()
+                updateAutoSkillCheck()
+                updateEmoteSystem()
+                updateMiniHUDVisibility()
+                updateFullbright()
+                updateResolutionModifier()
+                updateBlindProgress()
+                updateSelectSystem()
+                
+                game:GetService("StarterGui"):SetCore("SendNotification", {
+                    Title = "Config",
+                    Text = "Reset Complete!",
+                    Duration = 2
+                })
+            end)
+            resetButton.Position = UDim2.new(0, 10, 0, yPos)
+            yPos = yPos + 50
+            
+            local infoText = Instance.new("TextLabel")
+            infoText.Size = UDim2.new(1, -20, 0, 40)
+            infoText.Position = UDim2.new(0, 10, 0, yPos)
+            infoText.BackgroundTransparency = 1
+            infoText.Text = "Config for " .. GameMode .. " mode\nClick SAVE to save current settings\nClick RESET to restore defaults"
+            infoText.TextColor3 = Color3.fromRGB(160, 140, 210)
+            infoText.TextSize = 12
+            infoText.Font = Enum.Font.Gotham
+            infoText.TextWrapped = true
+            infoText.TextXAlignment = Enum.TextXAlignment.Center
+            infoText.Parent = Content
+            yPos = yPos + 50
+            
+            Content.CanvasSize = UDim2.new(0, 0, 0, yPos + 20)
+        end
     end
 end
 
@@ -6984,7 +7056,7 @@ local function initializeGUI()
     versionLabel.Size = UDim2.new(0, 60, 1, 0)
     versionLabel.Position = UDim2.new(0, 10, 0, 0)
     versionLabel.BackgroundTransparency = 1
-    versionLabel.Text = "v1.6.4"
+    versionLabel.Text = "v1.6.5"
     versionLabel.TextColor3 = Color3.fromRGB(160, 140, 220)
     versionLabel.TextSize = 12
     versionLabel.Font = Enum.Font.Gotham
@@ -7236,53 +7308,53 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
     if not isInEscapeMenu then
         if input.KeyCode == MENU_KEY_INSERT or input.KeyCode == MENU_KEY_DELETE then
             toggleMenu()
-        elseif input.KeyCode == Enum.KeyCode[Dash.Key] then
+        elseif input.KeyCode == Enum.KeyCode[Dash.Key] and GameMode == "GAME" then
             dash()
-        elseif input.KeyCode == Enum.KeyCode[Jump.Key] then
+        elseif input.KeyCode == Enum.KeyCode[Jump.Key] and GameMode == "GAME" then
             jump()
-        elseif input.KeyCode == Enum.KeyCode[Fly.Key] then
+        elseif input.KeyCode == Enum.KeyCode[Fly.Key] and GameMode == "GAME" then
             if Fly.Enabled then
                 toggleFly()
             end
-        elseif input.KeyCode == Enum.KeyCode[Moonwalk.Key] and CurrentRole == "Survivor" then
+        elseif input.KeyCode == Enum.KeyCode[Moonwalk.Key] and CurrentRole == "Survivor" and GameMode == "GAME" then
             if Moonwalk.Enabled then
                 ToggleMoonwalk()
             end
-        elseif input.KeyCode == Enum.KeyCode[SpeedHack.Key] then
+        elseif input.KeyCode == Enum.KeyCode[SpeedHack.Key] and GameMode == "GAME" then
             handleSpeedHackKey()
-        elseif input.KeyCode == Enum.KeyCode[HealthStateChange.Key] and CurrentRole == "Survivor" then
+        elseif input.KeyCode == Enum.KeyCode[HealthStateChange.Key] and CurrentRole == "Survivor" and GameMode == "GAME" then
             ToggleHealthState()
-        elseif input.KeyCode == Enum.KeyCode[BugPallet.Key] then
+        elseif input.KeyCode == Enum.KeyCode[BugPallet.Key] and GameMode == "GAME" then
             if BugPallet.Enabled and CurrentRole == "Survivor" then
                 toggleCollisions()
             end
-        elseif input.KeyCode == Enum.KeyCode[NoCollision.Key] then
+        elseif input.KeyCode == Enum.KeyCode[NoCollision.Key] and GameMode == "GAME" then
             if NoCollision.Enabled then
                 enablePhantomMode()
             end
-        elseif input.KeyCode == Enum.KeyCode[EmoteSystem.WheelKey] then
+        elseif input.KeyCode == Enum.KeyCode[EmoteSystem.WheelKey] and GameMode == "GAME" then
             if not EmoteSystem.EmoteWheelActive then
                 showWheel()
             end
-        elseif input.KeyCode == Enum.KeyCode[SelfHeal.Key] and CurrentRole == "Survivor" then
+        elseif input.KeyCode == Enum.KeyCode[SelfHeal.Key] and CurrentRole == "Survivor" and GameMode == "GAME" then
             if SelfHeal.Enabled then
                 startHealing()
             end
-        elseif input.KeyCode == Enum.KeyCode[SelectSystem.SelectKey] then
+        elseif input.KeyCode == Enum.KeyCode[SelectSystem.SelectKey] and GameMode == "GAME" then
             selectClosestTarget()
-        elseif input.KeyCode == Enum.KeyCode[SelectSystem.InstaHit.Key] then
+        elseif input.KeyCode == Enum.KeyCode[SelectSystem.InstaHit.Key] and GameMode == "GAME" then
             if SelectSystem.InstaHit.Enabled then
                 instaHitSelectedTarget()
             end
-        elseif input.KeyCode == Enum.KeyCode[SelectSystem.InstaRescue.Key] and CurrentRole == "Survivor" then
+        elseif input.KeyCode == Enum.KeyCode[SelectSystem.InstaRescue.Key] and CurrentRole == "Survivor" and GameMode == "GAME" then
             if SelectSystem.InstaRescue.Enabled then
                 instaRescueSelectedTarget()
             end
-        elseif input.KeyCode == Enum.KeyCode[SelectSystem.InstaHook.Key] and CurrentRole == "Killer" then
+        elseif input.KeyCode == Enum.KeyCode[SelectSystem.InstaHook.Key] and CurrentRole == "Killer" and GameMode == "GAME" then
             if SelectSystem.InstaHook.Enabled then
                 instaHookSelectedTarget()
             end
-        elseif input.KeyCode == Enum.KeyCode[MagnetAim.Key] and CurrentRole == "Killer" then
+        elseif input.KeyCode == Enum.KeyCode[MagnetAim.Key] and CurrentRole == "Killer" and GameMode == "GAME" then
             -- Magnet Aim handled in its own input handler
         end
     end
@@ -7290,13 +7362,13 @@ end)
 
 UserInputService.InputEnded:Connect(function(input, gameProcessed)
     if not isInEscapeMenu then
-        if input.KeyCode == Enum.KeyCode[SpeedHack.Key] and SpeedHack.Mode == "Hold" then
+        if input.KeyCode == Enum.KeyCode[SpeedHack.Key] and SpeedHack.Mode == "Hold" and GameMode == "GAME" then
             handleSpeedHackKeyRelease()
-        elseif input.KeyCode == Enum.KeyCode[EmoteSystem.WheelKey] then
+        elseif input.KeyCode == Enum.KeyCode[EmoteSystem.WheelKey] and GameMode == "GAME" then
             if EmoteSystem.EmoteWheelActive then
                 hideWheel()
             end
-        elseif input.KeyCode == Enum.KeyCode[NoCollision.Key] then
+        elseif input.KeyCode == Enum.KeyCode[NoCollision.Key] and GameMode == "GAME" then
             if NoCollision.Enabled then
                 disablePhantomMode()
             end
