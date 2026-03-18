@@ -1,6 +1,6 @@
 -- Cheat Injection Notification Script for Roblox
 -- Title: SQWIRT FROM SABLE DLC for destruction DBR
--- FINAL VERSION v1.6.5 - LOBBY/GAME SEPARATION
+-- FINAL VERSION v1.6.6 - UNIVERSAL CONFIG
 
 -- ==================== ОПРЕДЕЛЕНИЕ РЕЖИМА ====================
 local PlaceId = game.PlaceId
@@ -341,7 +341,7 @@ if not isAuthorized then
     repeat task.wait() until isAuthorized
 end
 
--- ==================== КОНФИГ СИСТЕМА ====================
+-- ==================== УНИВЕРСАЛЬНАЯ КОНФИГ СИСТЕМА ====================
 _G.Settings = {
     MenuKey = "Insert",
     
@@ -452,44 +452,51 @@ _G.Settings = {
     ResolutionModifier_Value = 0.80,
     BlindProgress_Enabled = false,
     
-    -- Lobby Only Settings
+    -- Lobby/Universal Settings
     OldAnims_Enabled = false,
     RewardPosition_X = 135.9,
     RewardPosition_Y = 517.7,
     RewardPosition_Z = -1821
 }
 
--- Функция сохранения конфига
+-- Функция сохранения конфига (УНИВЕРСАЛЬНАЯ)
 _G.SaveConfig = function()
     pcall(function()
         local json = HttpService:JSONEncode(_G.Settings)
-        writefile("SqwirtSableConfig_" .. GameMode .. ".txt", json)
+        writefile("SqwirtSableConfig.txt", json)
         game:GetService("StarterGui"):SetCore("SendNotification", {
             Title = "Config",
-            Text = "Saved for " .. GameMode .. "!",
+            Text = "Universal Config Saved!",
             Duration = 1
         })
+        print("✅ Universal config saved from " .. GameMode)
     end)
 end
 
--- Функция загрузки конфига
+-- Функция загрузки конфига (УНИВЕРСАЛЬНАЯ)
 _G.LoadConfig = function()
     pcall(function()
-        local filename = "SqwirtSableConfig_" .. GameMode .. ".txt"
-        if isfile and isfile(filename) then
-            local json = readfile(filename)
+        if isfile and isfile("SqwirtSableConfig.txt") then
+            local json = readfile("SqwirtSableConfig.txt")
             local loaded = HttpService:JSONDecode(json)
             for k, v in pairs(loaded) do
                 _G.Settings[k] = v
             end
-            print("✅ Config loaded for " .. GameMode)
+            print("✅ Universal config loaded for " .. GameMode)
+            
+            -- Показываем статус Old Anims при загрузке
+            if _G.Settings.OldAnims_Enabled then
+                print("  🎭 Old Anims: ENABLED (from config)")
+            else
+                print("  🎭 Old Anims: DISABLED (from config)")
+            end
         else
-            print("ℹ️ No config found for " .. GameMode .. ", using defaults")
+            print("ℹ️ No universal config found, using defaults for " .. GameMode)
         end
     end)
 end
 
--- Функция сброса конфига
+-- Функция сброса конфига (УНИВЕРСАЛЬНАЯ)
 _G.ResetConfig = function()
     _G.Settings = {
         MenuKey = "Insert",
@@ -587,12 +594,13 @@ _G.ResetConfig = function()
     }
     game:GetService("StarterGui"):SetCore("SendNotification", {
         Title = "Config",
-        Text = "Reset for " .. GameMode .. "!",
+        Text = "Universal Config Reset!",
         Duration = 1
     })
+    print("🔄 Universal config reset from " .. GameMode)
 end
 
--- Загружаем конфиг для текущего режима
+-- Загружаем универсальный конфиг
 _G.LoadConfig()
 
 -- ==================== НОВОЕ УВЕДОМЛЕНИЕ ====================
@@ -612,6 +620,11 @@ print("  From:    sqwirt from sable      ")
 print("  Mode:    " .. GameMode)
 print("  Status:  INJECTED                ")
 print("  Time:    " .. os.date("%H:%M:%S") .. "                ")
+if _G.Settings.OldAnims_Enabled then
+    print("  🎭 Old Anims: ENABLED")
+else
+    print("  🎭 Old Anims: DISABLED")
+end
 print("═══════════════════════════════════")
 
 -- ==================== MAIN SCRIPT ====================
@@ -5950,6 +5963,21 @@ local function updateTabs()
     roleIndicator.Font = Enum.Font.Gotham
     roleIndicator.TextXAlignment = Enum.TextXAlignment.Center
     roleIndicator.Parent = Content
+    
+    if _G.Settings.OldAnims_Enabled then
+        local oldAnimsIndicator = Instance.new("TextLabel")
+        oldAnimsIndicator.Size = UDim2.new(1, -20, 0, 20)
+        oldAnimsIndicator.Position = UDim2.new(0, 10, 0, 25)
+        oldAnimsIndicator.BackgroundTransparency = 1
+        oldAnimsIndicator.Text = "🎭 OLD ANIMS ENABLED (from config)"
+        oldAnimsIndicator.TextColor3 = Color3.fromRGB(200, 100, 255)
+        oldAnimsIndicator.TextSize = 12
+        oldAnimsIndicator.Font = Enum.Font.Gotham
+        oldAnimsIndicator.TextXAlignment = Enum.TextXAlignment.Center
+        oldAnimsIndicator.Parent = Content
+        yPos = yPos + 30
+    end
+    
     yPos = yPos + 35
     
     if GameMode == "LOBBY" then
@@ -5974,6 +6002,7 @@ local function updateTabs()
                     Text = "Restart script to apply",
                     Duration = 2
                 })
+                print("🎭 Old Anims set to: " .. tostring(value) .. " (will apply on restart)")
             end)
             oldAnimsToggle.Position = UDim2.new(0, 10, 0, yPos)
             yPos = yPos + 40
@@ -5996,7 +6025,7 @@ local function updateTabs()
                 
                 game:GetService("StarterGui"):SetCore("SendNotification", {
                     Title = "Config",
-                    Text = "Reset Complete!",
+                    Text = "Universal Config Reset!",
                     Duration = 2
                 })
             end)
@@ -6004,17 +6033,17 @@ local function updateTabs()
             yPos = yPos + 50
             
             local infoText = Instance.new("TextLabel")
-            infoText.Size = UDim2.new(1, -20, 0, 40)
+            infoText.Size = UDim2.new(1, -20, 0, 60)
             infoText.Position = UDim2.new(0, 10, 0, yPos)
             infoText.BackgroundTransparency = 1
-            infoText.Text = "Config for LOBBY mode\nClick SAVE to save current settings\nClick RESET to restore defaults"
-            infoText.TextColor3 = Color3.fromRGB(160, 140, 210)
+            infoText.Text = "UNIVERSAL CONFIG\nSettings saved here work in BOTH Lobby and Game!\nOld Anims setting will sync across modes"
+            infoText.TextColor3 = Color3.fromRGB(200, 150, 255)
             infoText.TextSize = 12
             infoText.Font = Enum.Font.Gotham
             infoText.TextWrapped = true
             infoText.TextXAlignment = Enum.TextXAlignment.Center
             infoText.Parent = Content
-            yPos = yPos + 50
+            yPos = yPos + 70
             
             Content.CanvasSize = UDim2.new(0, 0, 0, yPos + 20)
         end
@@ -6969,7 +6998,7 @@ local function updateTabs()
                 
                 game:GetService("StarterGui"):SetCore("SendNotification", {
                     Title = "Config",
-                    Text = "Reset Complete!",
+                    Text = "Universal Reset Complete!",
                     Duration = 2
                 })
             end)
@@ -6977,17 +7006,17 @@ local function updateTabs()
             yPos = yPos + 50
             
             local infoText = Instance.new("TextLabel")
-            infoText.Size = UDim2.new(1, -20, 0, 40)
+            infoText.Size = UDim2.new(1, -20, 0, 60)
             infoText.Position = UDim2.new(0, 10, 0, yPos)
             infoText.BackgroundTransparency = 1
-            infoText.Text = "Config for " .. GameMode .. " mode\nClick SAVE to save current settings\nClick RESET to restore defaults"
-            infoText.TextColor3 = Color3.fromRGB(160, 140, 210)
+            infoText.Text = "UNIVERSAL CONFIG\nSettings saved here work in BOTH Lobby and Game!\nOld Anims setting will sync across modes"
+            infoText.TextColor3 = Color3.fromRGB(200, 150, 255)
             infoText.TextSize = 12
             infoText.Font = Enum.Font.Gotham
             infoText.TextWrapped = true
             infoText.TextXAlignment = Enum.TextXAlignment.Center
             infoText.Parent = Content
-            yPos = yPos + 50
+            yPos = yPos + 70
             
             Content.CanvasSize = UDim2.new(0, 0, 0, yPos + 20)
         end
@@ -7056,7 +7085,7 @@ local function initializeGUI()
     versionLabel.Size = UDim2.new(0, 60, 1, 0)
     versionLabel.Position = UDim2.new(0, 10, 0, 0)
     versionLabel.BackgroundTransparency = 1
-    versionLabel.Text = "v1.6.5"
+    versionLabel.Text = "v1.6.6"
     versionLabel.TextColor3 = Color3.fromRGB(160, 140, 220)
     versionLabel.TextSize = 12
     versionLabel.Font = Enum.Font.Gotham
@@ -7441,6 +7470,11 @@ print("════════════════════════�
 print("  Mode:    " .. GameMode)
 print("  Role:    " .. CurrentRole)
 print("  Key:     " .. _G.Settings.MenuKey)
+if _G.Settings.OldAnims_Enabled then
+    print("  🎭 Old Anims: ENABLED (universal)")
+else
+    print("  🎭 Old Anims: DISABLED (universal)")
+end
 print("═══════════════════════════════════")
 
 return {
