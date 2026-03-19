@@ -32,10 +32,14 @@ local validKeys = {
 -- Флаг авторизации
 local isAuthorized = false
 
--- Проверка сохраненного ключа
+-- Проверка сохраненного ключа (исправлено)
 local savedKey = nil
 local readSuccess, readResult = pcall(function()
-    return readfile("sable_key_"..player.UserId..".txt")
+    -- Проверяем доступность функций файловой системы
+    if isfile and writefile then
+        return readfile("sable_key_"..player.UserId..".txt")
+    end
+    return nil
 end)
 
 if readSuccess and readResult then
@@ -242,10 +246,12 @@ if not isAuthorized then
         end
     end)
 
-    -- Save key function
+    -- Save key function (исправлено)
     local function saveKey(key)
         pcall(function()
-            writefile("sable_key_"..player.UserId..".txt", key)
+            if writefile and isfile then
+                writefile("sable_key_"..player.UserId..".txt", key)
+            end
         end)
     end
 
@@ -341,7 +347,7 @@ if not isAuthorized then
     repeat task.wait() until isAuthorized
 end
 
--- ==================== УНИВЕРСАЛЬНАЯ КОНФИГ СИСТЕМА ====================
+-- ==================== УНИВЕРСАЛЬНАЯ КОНФИГ СИСТЕМА (исправлено) ====================
 _G.Settings = {
     MenuKey = "Insert",
     
@@ -463,33 +469,43 @@ _G.Settings = {
     StunKiller_Key = "Seven"
 }
 
--- Функция сохранения конфига (УНИВЕРСАЛЬНАЯ)
+-- Функция сохранения конфига (исправлено)
 _G.SaveConfig = function()
     pcall(function()
-        local json = HttpService:JSONEncode(_G.Settings)
-        writefile("SqwirtSableConfig.txt", json)
-        game:GetService("StarterGui"):SetCore("SendNotification", {
-            Title = "Config",
-            Text = "Saved!",
-            Duration = 1
-        })
+        if HttpService and writefile and isfile then
+            local json = HttpService:JSONEncode(_G.Settings)
+            writefile("SqwirtSableConfig.txt", json)
+            game:GetService("StarterGui"):SetCore("SendNotification", {
+                Title = "Config",
+                Text = "Saved!",
+                Duration = 1
+            })
+        else
+            game:GetService("StarterGui"):SetCore("SendNotification", {
+                Title = "Config",
+                Text = "Save not supported!",
+                Duration = 1
+            })
+        end
     end)
 end
 
--- Функция загрузки конфига (УНИВЕРСАЛЬНАЯ)
+-- Функция загрузки конфига (исправлено)
 _G.LoadConfig = function()
     pcall(function()
-        if isfile and isfile("SqwirtSableConfig.txt") then
-            local json = readfile("SqwirtSableConfig.txt")
-            local loaded = HttpService:JSONDecode(json)
-            for k, v in pairs(loaded) do
-                _G.Settings[k] = v
+        if isfile and readfile and HttpService then
+            if isfile("SqwirtSableConfig.txt") then
+                local json = readfile("SqwirtSableConfig.txt")
+                local loaded = HttpService:JSONDecode(json)
+                for k, v in pairs(loaded) do
+                    _G.Settings[k] = v
+                end
             end
         end
     end)
 end
 
--- Функция сброса конфига (УНИВЕРСАЛЬНАЯ)
+-- Функция сброса конфига (исправлено)
 _G.ResetConfig = function()
     _G.Settings = {
         MenuKey = "Insert",
@@ -594,7 +610,7 @@ _G.ResetConfig = function()
     })
 end
 
--- Загружаем универсальный конфиг
+-- Загружаем универсальный конфиг (с проверкой)
 _G.LoadConfig()
 
 -- ==================== НОВОЕ УВЕДОМЛЕНИЕ ====================
