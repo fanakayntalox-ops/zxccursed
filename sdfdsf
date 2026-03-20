@@ -1,0 +1,118 @@
+-- АГРЕССИВНЫЙ Finish All Gens - МАКСИМАЛЬНАЯ СКОРОСТЬ
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local LocalPlayer = Players.LocalPlayer
+
+-- ЖДЕМ ПОЛНОЙ ЗАГРУЗКИ
+repeat wait() until LocalPlayer and LocalPlayer.Character
+
+-- ПОЛУЧАЕМ REMOTE МГНОВЕННО
+local RemoteStorage = game:GetService("ReplicatedStorage")
+local RemoteEvents = RemoteStorage:FindFirstChild("RemoteEvents") or RemoteStorage:WaitForChild("RemoteEvents", 1)
+local Cheat = RemoteEvents:FindFirstChild("NewPropertie") or RemoteEvents:WaitForChild("NewPropertie", 1)
+
+-- ЕСЛИ НЕТ REMOTE - ИЩЕМ АЛЬТЕРНАТИВЫ
+if not Cheat then
+    for _, v in pairs(RemoteEvents:GetChildren()) do
+        if v:IsA("RemoteEvent") then
+            Cheat = v
+            break
+        end
+    end
+end
+
+-- ЗАГОТОВКА ДАННЫХ (ОПТИМИЗИРОВАНО)
+local List = {"Bbh1O", "D9v8", "Dbh1O", "Dvh1O", "Dhv8"}
+local function createPacket(value)
+    local packet = {}
+    local packaged = {
+        ['C22'] = 'I101',
+        ['C21'] = value,
+        ['C20'] = 999999  -- МАКСИМАЛЬНОЕ ЗНАЧЕНИЕ
+    }
+    for _, key in pairs(List) do
+        packet[key] = packaged
+    end
+    return packet
+end
+
+-- УНИЧТОЖАЕМ ПРЕДЫДУЩИЕ СОЕДИНЕНИЯ
+if _G.FinishGensConnection then
+    _G.FinishGensConnection:Disconnect()
+    _G.FinishGensConnection = nil
+end
+
+-- АГРЕССИВНЫЙ ПОИСК И УНИЧТОЖЕНИЕ ГЕНЕРАТОРОВ
+_G.FinishGensConnection = RunService.RenderStepped:Connect(function()
+    -- ИСПОЛЬЗУЕМ СЫРЫЕ ДАННЫЕ ДЛЯ СКОРОСТИ
+    local success, result = pcall(function()
+        for _, obj in pairs(workspace:GetChildren()) do
+            -- БЫСТРАЯ ПРОВЕРКА БЕЗ IsA (ЭКОНОМИМ ВРЕМЯ)
+            if obj.ClassName == "Model" and obj.Name:find("Generator") then
+                local panel = obj:FindFirstChild("Panel")
+                if panel then
+                    local progress = panel:FindFirstChild("Progress")
+                    if progress then
+                        -- МНОЖЕСТВЕННАЯ ОТПРАВКА ДЛЯ ГАРАНТИИ
+                        for i = 1, 3 do
+                            Cheat:FireServer(createPacket(progress))
+                        end
+                    end
+                end
+            end
+        end
+    end)
+    
+    if not success then
+        -- ИГНОРИРУЕМ ОШИБКИ
+    end
+end)
+
+-- ДОПОЛНИТЕЛЬНЫЙ ПОТОК ДЛЯ МАКСИМАЛЬНОЙ НАГРУЗКИ
+spawn(function()
+    while wait(0.1) do
+        local success, result = pcall(function()
+            for _, obj in pairs(workspace:GetChildren()) do
+                if obj.ClassName == "Model" and obj.Name:find("Generator") then
+                    local panel = obj:FindFirstChild("Panel")
+                    if panel then
+                        local progress = panel:FindFirstChild("Progress")
+                        if progress then
+                            Cheat:FireServer(createPacket(progress))
+                        end
+                    end
+                end
+            end
+        end)
+    end
+end)
+
+-- ТРЕТИЙ ПОТОК - ДЛЯ СТРАХОВКИ
+game:GetService("RunService").Heartbeat:Connect(function()
+    pcall(function()
+        for _, obj in pairs(workspace:GetChildren()) do
+            if obj.ClassName == "Model" and obj.Name:find("Generator") then
+                local panel = obj:FindFirstChild("Panel")
+                if panel then
+                    local progress = panel:FindFirstChild("Progress")
+                    if progress then
+                        Cheat:FireServer(createPacket(progress))
+                    end
+                end
+            end
+        end
+    end)
+end)
+
+print("🔥 АГРЕССИВНЫЙ FINISH ALL GENS АКТИВИРОВАН")
+print("⚡ СКОРОСТЬ: МАКСИМАЛЬНАЯ")
+print("🎯 ЦЕЛЬ: ВСЕ ГЕНЕРАТОРЫ")
+
+-- КОМАНДЫ УПРАВЛЕНИЯ
+_G.stopFinish = function()
+    if _G.FinishGensConnection then
+        _G.FinishGensConnection:Disconnect()
+        _G.FinishGensConnection = nil
+        print("🛑 ОСТАНОВЛЕНО")
+    end
+end
